@@ -19,7 +19,7 @@ If you wish to see more, please submit PRs or a request in an issue!
 use sauce_api::prelude::*;
 
 async fn find_source(url: &str) {
-    let res: Result<SauceResult, String> = IQDB::check_sauce(url).await; // This checks the sauce, and can take some time as IQDB is a bit slow.
+    let res: Result<SauceResult, String> = IQDB::check_sauce(url).await; // Can take some time as IQDB is a bit slow.
 
     match res {
         Ok(result) => {
@@ -37,7 +37,6 @@ async fn find_source(url: &str) {
 ```rust
 use sauce_api::prelude::*;
 
-// This checks the sauce.
 // NOTE: Requires that `SAUCENAO_API_KEY` is set in environment variables.
 //       Am looking for a neat way around that.
 async fn find_source(url: &str) {

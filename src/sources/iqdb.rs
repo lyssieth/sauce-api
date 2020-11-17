@@ -6,6 +6,7 @@ use select::predicate::*;
 
 const BASE_ADDRESS: &str = "https://iqdb.org/";
 
+/// Gets sauces from iqdb.org
 pub struct IQDB;
 
 #[async_trait]
