@@ -1,7 +1,10 @@
 [package]
 authors = ["Lyssieth <raxixor@rax.ee>"]
+description = "API for searching for the original source of images."
 edition = "2018"
+license = "MIT"
 name = "sauce-api"
+repository = "https://github.com/lyssieth/sauce-api"
 version = "0.5.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
