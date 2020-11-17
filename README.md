@@ -15,7 +15,7 @@ If you wish to see more, please submit PRs or a request in an issue!
 
 ### IQDB
 
-```rs
+```rust
 use sauce_api::prelude::*;
 
 async fn find_source(url: &str) {
@@ -34,7 +34,7 @@ async fn find_source(url: &str) {
 
 ### SauceNao
 
-```rs
+```rust
 use sauce_api::prelude::*;
 
 // This checks the sauce.
