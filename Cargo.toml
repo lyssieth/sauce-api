@@ -2,7 +2,7 @@
 authors = ["Lyssieth <raxixor@rax.ee>"]
 edition = "2018"
 name = "sauce-api"
-version = "0.1.0"
+version = "0.5.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
