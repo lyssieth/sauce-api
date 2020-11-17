@@ -52,7 +52,7 @@ impl Sauce for SauceNao {
             }
         }
 
-        todo!()
+        Ok(result)
     }
 }
 

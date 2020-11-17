@@ -7,9 +7,10 @@ version = "0.1.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = "0.1.41"
-reqwest = {version = "0.10.8", features = ["json"]}
-serde = "1.0.117"
-serde_derive = "1.0.117"
-strfmt = "0.1.6"
-urlencoding = "1.1.1"
+async-trait = "0.1"
+reqwest = {version = "0.10", features = ["json"]}
+select = "0.5"
+serde = "1.0"
+serde_derive = "1.0"
+strfmt = "0.1"
+urlencoding = "1.1"
