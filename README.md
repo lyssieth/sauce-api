@@ -1,5 +1,7 @@
 # sauce-api
 
+[![documentation](https://docs.rs/sauce-api/badge.svg)](https://docs.rs/sauce-api) [![crates.io](https://img.shields.io/crates/v/sauce-api)](https://crates.io/crates/sauce-api)
+
 A simple-to-use async API for finding the source of an image.
 
 Best used with Tokio, but async-std should work too.
