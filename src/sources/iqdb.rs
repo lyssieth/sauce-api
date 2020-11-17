@@ -32,8 +32,6 @@ impl Sauce for IQDB {
         if let Some(status) = status.next() {
             if !status.text().trim().starts_with("OK, ") {
                 return Err(format!("Unable to retrieve sauce: {}", status.text()));
-            } else {
-                eprintln!("success in getting image: {}", status.text());
             }
         }
 
