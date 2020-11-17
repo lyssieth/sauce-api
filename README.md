@@ -9,11 +9,9 @@ Best used with Tokio, but async-std should work too.
 - [IQDB](https://iqdb.org)
 - [saucenao](https://saucenao.com)
 
-If you wish to see more, please submit PRs!
+If you wish to see more, please submit PRs or a request in an issue!
 
 ## Usage
-
-It's pretty simple.
 
 ### IQDB
 
