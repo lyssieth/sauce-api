@@ -20,8 +20,9 @@ If you wish to see more, please submit PRs or a request in an issue!
 ```rust
 use sauce_api::prelude::*;
 
-async fn find_source(url: &str) {
-    let res: Result<SauceResult, String> = IQDB::check_sauce(url).await; // Can take some time as IQDB is a bit slow.
+async fn find_source(url: String) {
+    let source = IQDB;
+    let res: Result<SauceResult, String> = source.check_sauce(url).await; // Can take some time as IQDB is a bit slow.
 
     match res {
         Ok(result) => {
@@ -39,10 +40,10 @@ async fn find_source(url: &str) {
 ```rust
 use sauce_api::prelude::*;
 
-// NOTE: Requires that `SAUCENAO_API_KEY` is set in environment variables.
-//       Am looking for a neat way around that.
-async fn find_source(url: &str) {
-    let res: Result<SauceResult, String> = SauceNao::check_sauce(url).await;
+async fn find_source(url: String) {
+    let mut source = SauceNao::new();
+    source.set_api_key("an_api_key".to_string());
+    let res: Result<SauceResult, String> = source.check_sauce(url).await;
 
     match res {
         Ok(result) => {

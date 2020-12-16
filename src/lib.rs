@@ -15,12 +15,12 @@ pub mod sources;
 #[async_trait]
 pub trait Sauce {
     /// Runs the sauce engine against a given URL, providing either results or a 'String' as an error.
-    async fn check_sauce(url: &str) -> Result<SauceResult, String>;
+    async fn check_sauce(&self, url: String) -> Result<SauceResult, String>;
     /// Just runs check_sauce several times, combining it all into one Vec<SauceResult>
-    async fn check_sauces(urls: Vec<String>) -> Result<Vec<SauceResult>, String> {
+    async fn check_sauces(&self, urls: Vec<String>) -> Result<Vec<SauceResult>, String> {
         let mut out = Vec::new();
         for x in urls {
-            let res = Self::check_sauce(&x).await?;
+            let res = self.check_sauce(x).await?;
             out.push(res);
         }
 

@@ -11,7 +11,8 @@ pub struct IQDB;
 
 #[async_trait]
 impl Sauce for IQDB {
-    async fn check_sauce(url: &str) -> Result<SauceResult, String> {
+    async fn check_sauce(&self, url: String) -> Result<SauceResult, String> {
+        let url = &url;
         let cli = Client::new();
         let resp = cli
             .get(BASE_ADDRESS)

@@ -6,15 +6,22 @@ use std::collections::HashMap;
 
 const BASE_URL: &str = "https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url={url}&api_key={api_key}";
 
-pub struct SauceNao;
+pub struct SauceNao {
+    api_key: Option<String>,
+}
 
 #[async_trait]
 impl Sauce for SauceNao {
-    async fn check_sauce(url: &str) -> Result<SauceResult, String> {
-        let api_key = get_api_key()?;
+    async fn check_sauce(&self, url: String) -> Result<SauceResult, String> {
+        let api_key = self.get_api_key();
+
+        if api_key.is_none() {
+            return Err("API_KEY is None".to_string());
+        }
+        let api_key = api_key.clone().unwrap();
 
         let mut vars = HashMap::new();
-        vars.insert("url".to_string(), urlencoding::encode(url));
+        vars.insert("url".to_string(), urlencoding::encode(&url));
         vars.insert("api_key".to_string(), api_key);
 
         let fmt =
@@ -56,13 +63,24 @@ impl Sauce for SauceNao {
     }
 }
 
-fn get_api_key() -> Result<String, String> {
-    std::env::var("SAUCENAO_API_KEY").map_err(|e| {
-        format!(
-            "SAUCENAO_API_KEY environment variable could not be found: {}",
-            e
-        )
-    })
+impl SauceNao {
+    pub fn new() -> Self {
+        SauceNao { api_key: None }
+    }
+
+    pub fn set_api_key(&mut self, api_key: String) {
+        self.api_key = Some(api_key)
+    }
+
+    fn get_api_key(&self) -> &Option<String> {
+        &self.api_key
+    }
+}
+
+impl Default for SauceNao {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 #[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]
