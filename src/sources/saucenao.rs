@@ -12,7 +12,7 @@ pub struct SauceNao {
 
 #[async_trait]
 impl Sauce for SauceNao {
-    async fn check_sauce(&self, url: String) -> Result<SauceResult, String> {
+    async fn build_url(&self, url: &str) -> Result<String, String> {
         let api_key = self.get_api_key();
 
         if api_key.is_none() {
@@ -27,13 +27,35 @@ impl Sauce for SauceNao {
         let fmt =
             strfmt::strfmt(BASE_URL, &vars).map_err(|e| format!("Unable to format url: {}", e))?;
 
+        return Ok(fmt);
+    }
+
+    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, String> {
+        let url = self.build_url(&original_url).await?;
+
         let cli = Client::new();
+        let head = cli
+            .head(&original_url)
+            .send()
+            .await
+            .map_err(|e| format!("Unable to send HEAD request to `{}`: {}", original_url, e))?;
+
+        let content_type = head.headers().get(header::CONTENT_TYPE);
+        if let Some(content_type) = content_type {
+            let content_type = content_type
+                .to_str()
+                .map_err(|e| format!("Unable to covert content type value to string: {}", e))?;
+            if !content_type.contains("image") {
+                return Err("Link does not lead to an image.".to_string());
+            }
+        }
+
         let resp = cli
-            .get(&fmt)
+            .get(&url)
             .header(header::ACCEPT_ENCODING, "utf-8")
             .send()
             .await
-            .map_err(|e| format!("Unable to send request to `{}`: {}", fmt, e))?;
+            .map_err(|e| format!("Unable to send request to `{}`: {}", url, e))?;
 
         let res = resp
             .json::<ApiResult>()
@@ -41,7 +63,7 @@ impl Sauce for SauceNao {
             .map_err(|e| format!("Unable to make ApiResult: {}", e))?;
 
         let mut result = SauceResult {
-            original_url: url.to_string(),
+            original_url: original_url.to_string(),
             ..Default::default()
         };
 

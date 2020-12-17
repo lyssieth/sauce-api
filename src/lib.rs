@@ -14,6 +14,8 @@ pub mod sources;
 /// A generic trait that can be used to standardize the sauce system across different sources.
 #[async_trait]
 pub trait Sauce {
+    /// Builds the URL for the given location, allowing one to provide it in case an error happens
+    async fn build_url(&self, url: &str) -> Result<String, String>;
     /// Runs the sauce engine against a given URL, providing either results or a 'String' as an error.
     async fn check_sauce(&self, url: String) -> Result<SauceResult, String>;
     /// Just runs check_sauce several times, combining it all into one Vec<SauceResult>

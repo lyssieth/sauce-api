@@ -1,6 +1,6 @@
 use crate::{Sauce, SauceItem, SauceResult};
 use async_trait::async_trait;
-use reqwest::Client;
+use reqwest::{header, Client};
 use select::document::Document;
 use select::predicate::*;
 
@@ -11,12 +11,32 @@ pub struct IQDB;
 
 #[async_trait]
 impl Sauce for IQDB {
-    async fn check_sauce(&self, url: String) -> Result<SauceResult, String> {
-        let url = &url;
+    async fn build_url(&self, url: &str) -> Result<String, String> {
+        Ok(format!("{}?url={}", BASE_ADDRESS, url))
+    }
+
+    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, String> {
+        let url = &original_url;
         let cli = Client::new();
+
+        let head = cli
+            .head(&original_url)
+            .send()
+            .await
+            .map_err(|e| format!("Unable to send HEAD request to `{}`: {}", original_url, e))?;
+
+        let content_type = head.headers().get(header::CONTENT_TYPE);
+        if let Some(content_type) = content_type {
+            let content_type = content_type
+                .to_str()
+                .map_err(|e| format!("Unable to covert content type value to string: {}", e))?;
+            if !content_type.contains("image") {
+                return Err("Link does not lead to an image.".to_string());
+            }
+        }
+
         let resp = cli
-            .get(BASE_ADDRESS)
-            .query(&[("url", url)])
+            .get(&self.build_url(url).await?)
             .send()
             .await
             .map_err(|e| format!("Failed to send request: {}", e))?;
