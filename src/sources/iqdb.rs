@@ -79,9 +79,24 @@ impl Sauce for IQDB {
                     match idx {
                         0 | 2..=3 => continue,
                         1 => {
-                            let td = node.first_child().unwrap();
-                            let link = td.first_child().unwrap();
-                            let href = link.attr("href").unwrap().to_string();
+                            let td =
+                                match node.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
+                            let link =
+                                match td.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
+                            let href =
+                                match link.attr("href") {
+                                    Some(href) => Ok(href.to_string()),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
                             item.link = if href.starts_with("//") {
                                 "https:".to_string() + &href
                             } else {
@@ -89,10 +104,18 @@ impl Sauce for IQDB {
                             };
                         }
                         4 => {
-                            let td = node.first_child().unwrap();
+                            let td =
+                                match node.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
-                            item.similarity = similarity.parse::<f64>().unwrap();
+                            item.similarity = match similarity.parse::<f64>() {
+                                Ok(similarity) => Ok(similarity),
+                                Err(e) => Err(format!("Unable to retrieve sauce: {}", e)),
+                            }?;
                         }
                         _ => break,
                     }
@@ -109,7 +132,10 @@ impl Sauce for IQDB {
         let pages = html.find(Attr("id", "more1")).next();
 
         if let Some(pages) = pages {
-            let real_pages = pages.find(Class("pages")).next().unwrap();
+            let real_pages = match pages.find(Class("pages")).next() {
+                Some(real_pages) => Ok(real_pages),
+                None => Err("Unable to retrieve sauce: failed to parse page".to_string()),
+            }?;
 
             for node in real_pages.children() {
                 let mut item = SauceItem::default();
@@ -117,9 +143,24 @@ impl Sauce for IQDB {
                 for (idx, node) in node.find(Name("tr")).enumerate() {
                     match idx {
                         0 => {
-                            let td = node.first_child().unwrap();
-                            let link = td.first_child().unwrap();
-                            let href = link.attr("href").unwrap().to_string();
+                            let td =
+                                match node.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
+                            let link =
+                                match td.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
+                            let href =
+                                match link.attr("href") {
+                                    Some(href) => Ok(href.to_string()),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
                             item.link = if href.starts_with("//") {
                                 "https:".to_string() + &href
                             } else {
@@ -128,10 +169,18 @@ impl Sauce for IQDB {
                         }
                         1..=2 => continue,
                         3 => {
-                            let td = node.first_child().unwrap();
+                            let td =
+                                match node.first_child() {
+                                    Some(node) => Ok(node),
+                                    None => Err("Unable to retrieve sauce: failed to parse page."
+                                        .to_string()),
+                                }?;
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
-                            item.similarity = similarity.parse::<f64>().unwrap();
+                            item.similarity = match similarity.parse::<f64>() {
+                                Ok(similarity) => Ok(similarity),
+                                Err(e) => Err(format!("Unable to retrieve sauce: {}", e)),
+                            }?;
                         }
                         _ => break,
                     }

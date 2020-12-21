@@ -1,4 +1,4 @@
-use crate::{Sauce, SauceItem, SauceResult};
+use crate::{Sauce, SauceResult};
 use async_trait::async_trait;
 use reqwest::Client;
 use select::document::Document;
