@@ -1,22 +1,25 @@
-use crate::{Sauce, SauceItem, SauceResult};
+use crate::{Sauce, SauceItem, SauceResult, SauceError};
 use async_trait::async_trait;
 use reqwest::{header, Client};
-use serde_derive::Deserialize;
+use serde::{Deserialize};
 use std::collections::HashMap;
 
 const BASE_URL: &str = "https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url={url}&api_key={api_key}";
 
+/// The SauceNao source.
+/// Requires an API key to function.
+#[derive(Debug)]
 pub struct SauceNao {
     api_key: Option<String>,
 }
 
 #[async_trait]
 impl Sauce for SauceNao {
-    async fn build_url(&self, url: &str) -> Result<String, String> {
+    async fn build_url(&self, url: &str) -> Result<String, SauceError> {
         let api_key = self.get_api_key();
 
         if api_key.is_none() {
-            return Err("API_KEY is None".to_string());
+            return Err(SauceError::GenericStr("API_KEY is None"));
         }
         let api_key = api_key.clone().unwrap();
 
@@ -25,28 +28,25 @@ impl Sauce for SauceNao {
         vars.insert("api_key".to_string(), api_key);
 
         let fmt =
-            strfmt::strfmt(BASE_URL, &vars).map_err(|e| format!("Unable to format url: {}", e))?;
+            strfmt::strfmt(BASE_URL, &vars)?;
 
         return Ok(fmt);
     }
 
-    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, String> {
+    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, SauceError> {
         let url = self.build_url(&original_url).await?;
 
         let cli = Client::new();
         let head = cli
             .head(&original_url)
             .send()
-            .await
-            .map_err(|e| format!("Unable to send HEAD request to `{}`: {}", original_url, e))?;
+            .await?;
 
         let content_type = head.headers().get(header::CONTENT_TYPE);
         if let Some(content_type) = content_type {
-            let content_type = content_type
-                .to_str()
-                .map_err(|e| format!("Unable to covert content type value to string: {}", e))?;
+            let content_type = content_type.to_str()?;
             if !content_type.contains("image") {
-                return Err("Link does not lead to an image.".to_string());
+                return Err(SauceError::LinkIsNotImage);
             }
         }
 
@@ -54,13 +54,11 @@ impl Sauce for SauceNao {
             .get(&url)
             .header(header::ACCEPT_ENCODING, "utf-8")
             .send()
-            .await
-            .map_err(|e| format!("Unable to send request to `{}`: {}", url, e))?;
+            .await?;
 
         let res = resp
             .json::<ApiResult>()
-            .await
-            .map_err(|e| format!("Unable to make ApiResult: {}", e))?;
+            .await?;
 
         let mut result = SauceResult {
             original_url: original_url.to_string(),
@@ -73,8 +71,7 @@ impl Sauce for SauceNao {
                     similarity: x
                         .header
                         .similarity
-                        .parse::<f64>()
-                        .map_err(|e| format!("Unable to parse a float: {}", e))?,
+                        .parse::<f64>()?,
                     link: links[0].clone(),
                 };
                 result.items.push(item);
@@ -86,10 +83,12 @@ impl Sauce for SauceNao {
 }
 
 impl SauceNao {
+    /// Creates a new SauceNao source, with a [None] api key.
     pub fn new() -> Self {
         SauceNao { api_key: None }
     }
 
+    /// Sets the api key to a given [String].
     pub fn set_api_key(&mut self, api_key: String) {
         self.api_key = Some(api_key)
     }

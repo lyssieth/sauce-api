@@ -6,15 +6,15 @@ keywords = ["library", "source", "find", "search"]
 license = "MIT"
 name = "sauce-api"
 repository = "https://github.com/lyssieth/sauce-api"
-version = "0.6.1-alpha2"
+version = "0.6.1-alpha3"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-trait = "0.1.42"
-reqwest = {version = "0.10", features = ["json"]}
+async-trait = "0.1"
+reqwest = { version = "0.11", features = ["json"] }
 select = "0.5"
-serde = "1.0"
-serde_derive = "1.0"
+serde = { version = "1.0", features = ["derive"] }
 strfmt = "0.1"
+thiserror = "1.0"
 urlencoding = "1.1"

@@ -1,18 +1,19 @@
-use crate::{Sauce, SauceResult};
+use crate::{Sauce, SauceResult, SauceError};
 use async_trait::async_trait;
 use reqwest::Client;
 use select::document::Document;
 use select::predicate::*;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 const BASE_ADDRESS: &str = "https://yandex.com/images/search";
 
 /// Gets sauces from yandex.com
+#[derive(Debug)]
 pub struct Yandex;
 
 #[async_trait]
 impl Sauce for Yandex {
-    async fn build_url(&self, url: &str) -> Result<String, String> {
+    async fn build_url(&self, url: &str) -> Result<String, SauceError> {
         let blocks = r#"{"blocks":[{"block":"b-page_type_search-by-image__link"}]}"#;
         let get_url = format!(
             r#"{}?url={}&rpt=imageview&format=json&request={}"#,
@@ -24,18 +25,16 @@ impl Sauce for Yandex {
         let resp = cli
             .get(&get_url)
             .send()
-            .await
-            .map_err(|e| format!("Failed to send request: {}", e))?;
+            .await?;
 
         let json = resp
             .json::<YandexBuildUrl>()
-            .await
-            .map_err(|e| format!("Failed to parse request: {}", e))?;
+            .await?;
 
         Ok(format!("{}?{}", BASE_ADDRESS, json.blocks[0].params.url))
     }
 
-    async fn check_sauce(&self, url: String) -> Result<SauceResult, String> {
+    async fn check_sauce(&self, url: String) -> Result<SauceResult, SauceError> {
         let url = self.build_url(&url).await?;
 
         let cli = Client::new();
@@ -43,13 +42,11 @@ impl Sauce for Yandex {
         let resp = cli
             .get(&url)
             .send()
-            .await
-            .map_err(|e| format!("Failed to send request: {}", e))?;
+            .await?;
 
         let html = Document::from(
             resp.text()
-                .await
-                .map_err(|e| format!("Unable to convert to text: {}", e))?
+                .await?
                 .as_str(),
         );
 
