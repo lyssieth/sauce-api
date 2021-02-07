@@ -1,3 +1,4 @@
+use crate::sources::yandex::YandexCaptchaUrl;
 use thiserror::Error;
 
 /// The various errors that this API can produce.
@@ -7,6 +8,11 @@ pub enum SauceError {
     /// Or the header does not specify that the Content-Type is an image.
     #[error("The provided link does not lead to an image file.")]
     LinkIsNotImage,
+
+    /// If a Yandex search was hit by a captcha, thus preventing
+    /// the API from doing its job.
+    #[error("Yandex search was hit by captcha")]
+    HitByCaptcha(YandexCaptchaUrl),
 
     /// Unable to format.
     /// See [strfmt::FmtError]
@@ -27,6 +33,11 @@ pub enum SauceError {
     /// See [reqwest::Error]
     #[error("Failed to send request: {0}")]
     FailedRequest(#[from] reqwest::Error),
+
+    /// Failed to parse into json.
+    /// See [serde_json::Error]
+    #[error("Failed to parse into json: {0}")]
+    FailedToParseIntoJson(#[from] serde_json::Error),
 
     /// Unable to retrieve sauce.
     /// A more generic error.

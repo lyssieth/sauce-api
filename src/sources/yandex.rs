@@ -14,23 +14,35 @@ pub struct Yandex;
 #[async_trait]
 impl Sauce for Yandex {
     async fn build_url(&self, url: &str) -> Result<String, SauceError> {
-        let blocks = r#"{"blocks":[{"block":"b-page_type_search-by-image__link"}]}"#;
-        let get_url = format!(
-            r#"{}?url={}&rpt=imageview&format=json&request={}"#,
-            BASE_ADDRESS, url, blocks
-        );
+        let params = [
+            ("url", url),
+            ("rpt", "imageview"),
+            ("format", "json"),
+            (
+                "request",
+                "{\"blocks\":[{\"block\":\"b-page_type_search-by-image__link\"}]}",
+            ),
+        ];
 
         let cli = Client::new();
 
-        let resp = cli.get(&get_url).send().await?;
+        let resp = cli.get(BASE_ADDRESS).query(&params).send().await?;
 
-        let json = resp.json::<YandexBuildUrl>().await?;
+        let text = resp.text().await?;
 
-        Ok(format!("{}?{}", BASE_ADDRESS, json.blocks[0].params.url))
+        return if text.contains("captcha") {
+            let json: YandexCaptchaUrl = serde_json::from_str(&text)?;
+
+            Err(SauceError::HitByCaptcha(json))
+        } else {
+            let json: YandexBuildUrl = serde_json::from_str(&text)?;
+
+            Ok(format!("{}?{}", BASE_ADDRESS, json.blocks[0].params.url))
+        };
     }
 
-    async fn check_sauce(&self, url: String) -> Result<SauceResult, SauceError> {
-        let url = self.build_url(&url).await?;
+    async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
+        let url = self.build_url(&original_url).await?;
 
         let cli = Client::new();
 
@@ -44,6 +56,9 @@ impl Sauce for Yandex {
             let mut res = Vec::new();
             for x in view_other_sizes.children().iter() {
                 if let Some(link) = x.attr("href") {
+                    if link.contains("i.ytimg.com") {
+                        continue; // We skip i.ytimg.com because it is dynamic and generally bad.
+                    }
                     res.push(SauceItem {
                         link: link.to_string(),
                         similarity: -1.0,
@@ -52,7 +67,7 @@ impl Sauce for Yandex {
             }
 
             Ok(SauceResult {
-                original_url: url,
+                original_url: original_url.to_string(),
                 items: res,
             })
         } else {
@@ -61,6 +76,31 @@ impl Sauce for Yandex {
             ))
         }
     }
+}
+
+/// Contains the full JSON return from the captcha
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct YandexCaptchaUrl {
+    /// Type of some kind (unknown)
+    r#type: String,
+    /// Details
+    /// See [YandexCaptcha]
+    captcha: YandexCaptcha,
+}
+
+/// Contains the details of the captcha
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct YandexCaptcha {
+    /// URL to the captcha's image
+    #[serde(alias = "img-url")]
+    img_url: String,
+    /// Key for the captcha
+    key: String,
+    /// Captcha's status
+    status: String,
+    /// URL to link to the captcha.
+    #[serde(alias = "captcha-page")]
+    captcha_page: String,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
