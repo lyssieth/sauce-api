@@ -12,9 +12,19 @@ version = "0.6.1-alpha3"
 
 [dependencies]
 async-trait = "0.1"
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = ["json"] }
 select = "0.5"
 serde = { version = "1.0", features = ["derive"] }
 strfmt = "0.1"
 thiserror = "1.0"
 urlencoding = "1.1"
+
+[features]
+default = []
+
+rustls = ["reqwest/rustls-tls"]
+
+# This does a bit more than just using default reqwest features
+# See this comment in their Cargo.toml https://github.com/seanmonstar/reqwest/blob/master/Cargo.toml#L30
+# So we don't include it in the default features, but have it for symmetry
+native_tls = ["reqwest/native-tls"]
