@@ -10,6 +10,7 @@ Best used with Tokio, but async-std should work too.
 
 - [IQDB](https://iqdb.org)
 - [saucenao](https://saucenao.com)
+- [Yandex](https://yandex.com)
 
 If you wish to see more, please submit PRs or a request in an issue!
 
@@ -51,6 +52,26 @@ async fn find_source(url: String) {
         }
         Err(e) => {
             eprintln!("Unable to find results: {}", e);
+        }
+    }
+}
+```
+
+### Yandex
+
+```rust
+use sauce_api::prelude::*;
+
+async fn find_source(url: String) {
+    let mut source = Yandex;
+    let res: Result<SauceResult, String> = source.check_sauce(url).await;
+
+    match res {
+        Ok(result) => {
+            println!("Found results! {:?}", result);
+        }
+        Err(e) => {
+            println!("Unable to find results: {}", e);
         }
     }
 }
