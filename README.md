@@ -55,3 +55,12 @@ async fn find_source(url: String) {
     }
 }
 ```
+
+## Requirements
+
+sauce-api by default uses the native TLS framework, see [this](https://github.com/seanmonstar/reqwest#requirements) for specific details.
+You may opt-in to using rustls if you would like to by enabling the `rustls` feature like this:
+
+```toml
+sauce-api = { version = "0.6.0", features = ["rustls"] }
+```
