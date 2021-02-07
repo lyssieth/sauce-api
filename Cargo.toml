@@ -6,7 +6,7 @@ keywords = ["library", "source", "find", "search"]
 license = "MIT"
 name = "sauce-api"
 repository = "https://github.com/lyssieth/sauce-api"
-version = "0.6.1-alpha3"
+version = "0.7.0-alpha1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,7 +20,11 @@ thiserror = "1.0"
 urlencoding = "1.1"
 
 [features]
-default = []
+default = ["saucenao", "iqdb", "yandex"]
+
+saucenao = [] # Enables getting stuff from SauceNao
+iqdb = [] # Enables getting stuff from IQDB
+yandex = [] # Enables getting stuff from Yandex
 
 rustls = ["reqwest/rustls-tls"]
 

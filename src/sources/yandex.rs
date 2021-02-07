@@ -1,4 +1,4 @@
-use crate::{Sauce, SauceResult, SauceError};
+use crate::{Sauce, SauceError, SauceItem, SauceResult};
 use async_trait::async_trait;
 use reqwest::Client;
 use select::document::Document;
@@ -22,14 +22,9 @@ impl Sauce for Yandex {
 
         let cli = Client::new();
 
-        let resp = cli
-            .get(&get_url)
-            .send()
-            .await?;
+        let resp = cli.get(&get_url).send().await?;
 
-        let json = resp
-            .json::<YandexBuildUrl>()
-            .await?;
+        let json = resp.json::<YandexBuildUrl>().await?;
 
         Ok(format!("{}?{}", BASE_ADDRESS, json.blocks[0].params.url))
     }
@@ -39,20 +34,32 @@ impl Sauce for Yandex {
 
         let cli = Client::new();
 
-        let resp = cli
-            .get(&url)
-            .send()
-            .await?;
+        let resp = cli.get(&url).send().await?;
 
-        let html = Document::from(
-            resp.text()
-                .await?
-                .as_str(),
-        );
+        let html = Document::from(resp.text().await?.as_str());
 
-        let _similar = html.find(And(Class("CbirItem"), Class("CbirOtherSizes")));
+        let view_other_sizes = html.find(Class("Tags-Wrapper")).into_selection();
 
-        todo!("Currently unimplemented")
+        if !view_other_sizes.is_empty() {
+            let mut res = Vec::new();
+            for x in view_other_sizes.children().iter() {
+                if let Some(link) = x.attr("href") {
+                    res.push(SauceItem {
+                        link: link.to_string(),
+                        similarity: -1.0,
+                    });
+                }
+            }
+
+            Ok(SauceResult {
+                original_url: url,
+                items: res,
+            })
+        } else {
+            Err(SauceError::UnableToRetrieve(
+                "Could not find any similar images",
+            ))
+        }
     }
 }
 

@@ -1,7 +1,7 @@
-use crate::{Sauce, SauceItem, SauceResult, SauceError};
+use crate::{Sauce, SauceError, SauceItem, SauceResult};
 use async_trait::async_trait;
 use reqwest::{header, Client};
-use serde::{Deserialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 const BASE_URL: &str = "https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url={url}&api_key={api_key}";
@@ -27,8 +27,7 @@ impl Sauce for SauceNao {
         vars.insert("url".to_string(), urlencoding::encode(&url));
         vars.insert("api_key".to_string(), api_key);
 
-        let fmt =
-            strfmt::strfmt(BASE_URL, &vars)?;
+        let fmt = strfmt::strfmt(BASE_URL, &vars)?;
 
         return Ok(fmt);
     }
@@ -37,10 +36,7 @@ impl Sauce for SauceNao {
         let url = self.build_url(&original_url).await?;
 
         let cli = Client::new();
-        let head = cli
-            .head(&original_url)
-            .send()
-            .await?;
+        let head = cli.head(&original_url).send().await?;
 
         let content_type = head.headers().get(header::CONTENT_TYPE);
         if let Some(content_type) = content_type {
@@ -56,9 +52,7 @@ impl Sauce for SauceNao {
             .send()
             .await?;
 
-        let res = resp
-            .json::<ApiResult>()
-            .await?;
+        let res = resp.json::<ApiResult>().await?;
 
         let mut result = SauceResult {
             original_url: original_url.to_string(),
@@ -68,10 +62,7 @@ impl Sauce for SauceNao {
         for x in res.results {
             if let Some(links) = x.data.ext_urls {
                 let item = SauceItem {
-                    similarity: x
-                        .header
-                        .similarity
-                        .parse::<f64>()?,
+                    similarity: x.header.similarity.parse::<f64>()?,
                     link: links[0].clone(),
                 };
                 result.items.push(item);

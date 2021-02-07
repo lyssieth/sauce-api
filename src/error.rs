@@ -22,12 +22,12 @@ pub enum SauceError {
     /// See [std::num::ParseFloatError]
     #[error("Unable to convert to float: {0}")]
     UnableToConvertToFloat(#[from] std::num::ParseFloatError),
-    
+
     /// Failed to send request.
     /// See [reqwest::Error]
     #[error("Failed to send request: {0}")]
     FailedRequest(#[from] reqwest::Error),
-    
+
     /// Unable to retrieve sauce.
     /// A more generic error.
     #[error("Unable to retrieve sauce: {0}")]
@@ -36,8 +36,8 @@ pub enum SauceError {
     /// A very generic error, one which couldn't be generalized.
     #[error("An error occurred: {0}")]
     GenericStr(&'static str),
-    
+
     /// A very generic error, one which couldn't be generalized.
     #[error("An error occurred: {0}")]
-    GenericString(String)
+    GenericString(String),
 }
