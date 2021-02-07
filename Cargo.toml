@@ -19,6 +19,9 @@ strfmt = "0.1"
 thiserror = "1.0"
 urlencoding = "1.1"
 
+[dev-dependencies]
+tokio = { version = "1.2", features = ["rt", "macros"] }
+
 [features]
 default = ["saucenao", "iqdb", "yandex"]
 

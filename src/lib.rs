@@ -22,6 +22,9 @@ pub mod sources;
 /// Contains the various errors that can be produced.
 pub mod error;
 
+#[cfg(test)]
+mod tests;
+
 /// A generic trait that can be used to standardize the sauce system across different sources.
 #[async_trait]
 pub trait Sauce {
