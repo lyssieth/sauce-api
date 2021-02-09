@@ -1,4 +1,6 @@
+#[cfg(feature = "yandex")]
 use crate::sources::yandex::YandexCaptchaUrl;
+
 use thiserror::Error;
 
 /// The various errors that this API can produce.
@@ -9,6 +11,7 @@ pub enum SauceError {
     #[error("The provided link does not lead to an image file.")]
     LinkIsNotImage,
 
+    #[cfg(feature = "yandex")]
     /// If a Yandex search was hit by a captcha, thus preventing
     /// the API from doing its job.
     #[error("Yandex search was hit by captcha")]
