@@ -54,9 +54,7 @@ impl Sauce for SauceNao {
             .send()
             .await?;
 
-        let text = resp.text().await?;
-
-        let res: ApiResult = serde_json::from_str(&dbg!(text))?;
+        let res = resp.json::<ApiResult>().await?;
 
         let mut result = SauceResult {
             original_url: original_url.to_string(),
