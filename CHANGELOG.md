@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0
+
+### Added
+
+- Source for Yandex (warning: this has issues with captchas right now, looking for alternatives)
+- Feature gates for individual sources
+- Integration Testing
+
+
 ## 0.7.0-alpha1
 
 We're skipping ahead before releasing 0.6.1, since too much changed.
