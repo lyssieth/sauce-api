@@ -1,5 +1,10 @@
+# no rust build files for you
 /target
+# we an api
 Cargo.lock
+# I use Rider
 /.idea
+# Used by 'act' to test CI
 /.secrets
-/.env
+# Used by me to work on Rider better
+/.env 
