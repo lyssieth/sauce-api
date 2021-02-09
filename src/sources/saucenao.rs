@@ -4,7 +4,7 @@ use reqwest::{header, Client};
 use serde::Deserialize;
 use std::collections::HashMap;
 
-const BASE_URL: &str = "https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url={url}&api_key={api_key}";
+const BASE_URL: &str = "https://saucenao.com/search.php?url={url}&api_key={api_key}";
 
 /// The SauceNao source.
 /// Requires an API key to function.
@@ -34,6 +34,8 @@ impl Sauce for SauceNao {
 
     async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
         let url = self.build_url(&original_url).await?;
+        let url = url + "&db=999&output_type=2&testmode=1&numres=16";
+        // Moved these to where we need them
 
         let cli = Client::new();
         let head = cli.head(original_url).send().await?;
@@ -52,7 +54,9 @@ impl Sauce for SauceNao {
             .send()
             .await?;
 
-        let res = resp.json::<ApiResult>().await?;
+        let text = resp.text().await?;
+
+        let res: ApiResult = serde_json::from_str(&dbg!(text))?;
 
         let mut result = SauceResult {
             original_url: original_url.to_string(),
@@ -84,6 +88,21 @@ impl SauceNao {
         self.api_key = Some(api_key)
     }
 
+    // @todo: Figure out a method to implement getting remaining API calls
+    // @body: This would make it easier to report to clients of the API what the current limits are.
+    // /// Gets the amount of remaining API calls
+    // /// # Returns
+    // /// It returns a tuple in the format of (short, long)
+    // /// Where `short` is the amount remaining in 30 seconds,
+    // /// and `long` is the amount remaining in the next 24 hours
+    // pub async fn get_remaining(&self) -> Result<(i64, i64), SauceError> {
+    //     let url = self.build_url("").await?;
+    //
+    //     let resp = Client::new().get(&url);
+    //
+    //     Ok((0, 0))
+    // }
+
     fn get_api_key(&self) -> &Option<String> {
         &self.api_key
     }
@@ -104,7 +123,8 @@ struct ApiResult {
 #[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]
 struct ApiHeader {
     pub status: i64,
-    pub results_requested: i64,
+    pub short_remaining: i64,
+    pub long_remaining: i64,
 }
 
 #[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]

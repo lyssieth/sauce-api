@@ -111,9 +111,17 @@ async fn find_results() {
 
     assert_eq!(res.original_url.as_str(), TEST_URL);
 
-    for (result, expected) in res.items.iter().zip(COMPARE_RESULTS) {
-        assert_eq!(result.link.as_str(), expected.link);
-        let error_margin = f32::EPSILON;
-        assert!((result.similarity - expected.similarity).abs() < error_margin);
+    let items = res.items;
+
+    for expected in COMPARE_RESULTS {
+        let find = items.binary_search_by_key(&expected.link, |s| s.link.as_str());
+        if let Ok(find) = find {
+            let result = &items[find];
+
+            assert_eq!(result.link, expected.link);
+
+            let error_margin = f32::EPSILON;
+            assert!((result.similarity - expected.similarity).abs() < error_margin);
+        }
     }
 }

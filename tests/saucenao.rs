@@ -85,7 +85,7 @@ async fn build_url_test() {
 
     assert_eq!(
         res,
-        format!("https://saucenao.com/search.php?db=999&output_type=2&testmode=1&numres=16&url=https%3A%2F%2Fi.imgur.com%2FvRsNUMS.jpg&api_key={}", env!("SAUCENAO_API_KEY"))
+        format!("https://saucenao.com/search.php?url=https%3A%2F%2Fi.imgur.com%2FvRsNUMS.jpg&api_key={}", env!("SAUCENAO_API_KEY"))
     );
 }
 
@@ -109,10 +109,17 @@ async fn find_results() {
 
     assert_eq!(res.original_url.as_str(), TEST_URL);
 
-    for (result, expected) in res.items.iter().zip(COMPARE_RESULTS) {
-        assert_eq!(result.link.as_str(), expected.link);
+    let items = res.items;
 
-        let error_margin = f32::EPSILON;
-        assert!((result.similarity - expected.similarity).abs() < error_margin);
+    for expected in COMPARE_RESULTS {
+        let find = items.binary_search_by_key(&expected.link, |s| s.link.as_str());
+        if let Ok(find) = find {
+            let result = &items[find];
+
+            assert_eq!(result.link, expected.link);
+
+            let error_margin = f32::EPSILON;
+            assert!((result.similarity - expected.similarity).abs() < error_margin);
+        }
     }
 }
