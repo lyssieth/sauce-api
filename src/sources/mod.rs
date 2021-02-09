@@ -1,9 +1,12 @@
+/// Contains the IQDB source and related data.
 #[cfg(feature = "iqdb")]
-mod iqdb;
+pub mod iqdb;
+/// Contains the SauceNao source and related data.
 #[cfg(feature = "saucenao")]
-mod saucenao;
+pub mod saucenao;
+/// Contains the Yandex source and related data.
 #[cfg(feature = "yandex")]
-mod yandex;
+pub mod yandex;
 
 #[cfg(feature = "iqdb")]
 pub use iqdb::IQDB;

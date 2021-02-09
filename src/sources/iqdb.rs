@@ -16,11 +16,10 @@ impl Sauce for IQDB {
         Ok(format!("{}?url={}", BASE_ADDRESS, url))
     }
 
-    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, SauceError> {
-        let url = &original_url;
+    async fn check_sauce(&self, url: &str) -> Result<SauceResult, SauceError> {
         let cli = Client::new();
 
-        let head = cli.head(&original_url).send().await?;
+        let head = cli.head(url).send().await?;
 
         let content_type = head.headers().get(header::CONTENT_TYPE);
         if let Some(content_type) = content_type {
@@ -70,32 +69,40 @@ impl Sauce for IQDB {
                     match idx {
                         0 | 2..=3 => continue,
                         1 => {
-                            let td = match node.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
-                            }?;
-                            let link = match td.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
-                            }?;
-                            let href = match link.attr("href") {
-                                Some(href) => Ok(href.to_string()),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
-                            }?;
+                            let td_or_th = node.first_child();
+                            if td_or_th.is_none() {
+                                continue;
+                            }
+                            let td_or_th = td_or_th.unwrap();
+
+                            if td_or_th.is(Name("th")) {
+                                break;
+                            }
+
+                            let link = td_or_th.first_child();
+                            if link.is_none() {
+                                break;
+                            }
+                            let href = link.unwrap().attr("href");
+                            if href.is_none() {
+                                break;
+                            }
+                            let href = href.unwrap();
                             item.link = if href.starts_with("//") {
-                                "https:".to_string() + &href
+                                "https:".to_string() + href
                             } else {
-                                href
+                                href.to_string()
                             };
                         }
                         4 => {
-                            let td = match node.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
-                            }?;
+                            let td = node.first_child();
+                            if td.is_none() {
+                                continue;
+                            }
+                            let td = td.unwrap();
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
-                            item.similarity = match similarity.parse::<f64>() {
+                            item.similarity = match similarity.parse::<f32>() {
                                 Ok(similarity) => Ok(similarity),
                                 Err(e) => Err(SauceError::UnableToConvertToFloat(e)),
                             }?;
@@ -152,7 +159,7 @@ impl Sauce for IQDB {
                             }?;
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
-                            item.similarity = match similarity.parse::<f64>() {
+                            item.similarity = match similarity.parse::<f32>() {
                                 Ok(similarity) => Ok(similarity),
                                 Err(e) => Err(SauceError::UnableToConvertToFloat(e)),
                             }?;

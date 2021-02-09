@@ -28,12 +28,12 @@ pub trait Sauce {
     /// Builds the URL for the given location, allowing one to provide it in case an error happens
     async fn build_url(&self, url: &str) -> Result<String, SauceError>;
     /// Runs the sauce engine against a given URL, providing either results or a 'String' as an error.
-    async fn check_sauce(&self, url: String) -> Result<SauceResult, SauceError>;
+    async fn check_sauce(&self, url: &str) -> Result<SauceResult, SauceError>;
     /// Just runs check_sauce several times, combining it all into one Vec<SauceResult>
     async fn check_sauces(&self, urls: Vec<String>) -> Result<Vec<SauceResult>, SauceError> {
         let mut out = Vec::new();
         for x in urls {
-            let res = self.check_sauce(x).await?;
+            let res = self.check_sauce(&x).await?;
             out.push(res);
         }
 
@@ -59,5 +59,5 @@ pub struct SauceItem {
     ///
     /// # Notes
     /// A negative similarity value means similarity is unavailable or could not be retrieved.
-    pub similarity: f64,
+    pub similarity: f32,
 }

@@ -1,0 +1,74 @@
+on: [ push, pull_request ]
+
+name: Continuous integration
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    env: 
+      SAUCENAO_API_KEY: ${{ secrets.SAUCENAO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: check
+          args: --all-features
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    env: 
+      SAUCENAO_API_KEY: ${{ secrets.SAUCENAO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features
+
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    env: 
+      SAUCENAO_API_KEY: ${{ secrets.SAUCENAO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    env: 
+      SAUCENAO_API_KEY: ${{ secrets.SAUCENAO_API_KEY }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - run: rustup component add clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-features -- -D warnings 

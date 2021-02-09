@@ -32,11 +32,11 @@ impl Sauce for SauceNao {
         return Ok(fmt);
     }
 
-    async fn check_sauce(&self, original_url: String) -> Result<SauceResult, SauceError> {
+    async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
         let url = self.build_url(&original_url).await?;
 
         let cli = Client::new();
-        let head = cli.head(&original_url).send().await?;
+        let head = cli.head(original_url).send().await?;
 
         let content_type = head.headers().get(header::CONTENT_TYPE);
         if let Some(content_type) = content_type {
@@ -62,7 +62,7 @@ impl Sauce for SauceNao {
         for x in res.results {
             if let Some(links) = x.data.ext_urls {
                 let item = SauceItem {
-                    similarity: x.header.similarity.parse::<f64>()?,
+                    similarity: x.header.similarity.parse::<f32>()?,
                     link: links[0].clone(),
                 };
                 result.items.push(item);
