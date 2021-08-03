@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.0
+
+### Deprecated
+
+The entire Yandex Source is deprecated and will be removed in 0.9.0 whenever that eventually comes.
+
+### Updated
+
+Just upgraded stuff in the `Cargo.toml`.
+
 ## 0.7.1
 
 ### Fixed
@@ -27,4 +37,3 @@ We're skipping ahead before releasing 0.6.1, since too much changed.
 
 Currently, older changelogs are unavailable. Changelogs started being kept at 0.7.0-alpha1.  
 If anyone wishes, they can go back and write proper changelogs of past versions.
-

@@ -9,6 +9,10 @@ const BASE_ADDRESS: &str = "https://yandex.com/images/search";
 
 /// Gets sauces from yandex.com
 #[derive(Debug)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 pub struct Yandex;
 
 #[async_trait]
@@ -42,7 +46,7 @@ impl Sauce for Yandex {
     }
 
     async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
-        let url = self.build_url(&original_url).await?;
+        let url = self.build_url(original_url).await?;
 
         let cli = Client::new();
 
@@ -80,6 +84,10 @@ impl Sauce for Yandex {
 
 /// Contains the full JSON return from the captcha
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 pub struct YandexCaptchaUrl {
     /// Type of some kind (unknown)
     r#type: String,
@@ -90,6 +98,10 @@ pub struct YandexCaptchaUrl {
 
 /// Contains the details of the captcha
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 pub struct YandexCaptcha {
     /// URL to the captcha's image
     #[serde(alias = "img-url")]
@@ -104,16 +116,28 @@ pub struct YandexCaptcha {
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 struct YandexBuildUrl {
     pub blocks: Vec<YandexBlock>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 struct YandexBlock {
     pub params: YandexBlockParams,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 struct YandexBlockParams {
     pub url: String,
 }

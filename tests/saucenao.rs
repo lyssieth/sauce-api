@@ -2,12 +2,16 @@ mod common;
 
 use common::*;
 
-fn get_source() -> SauceNao {
+fn get_source<'a>() -> SauceNao<'a> {
     let mut src = SauceNao::new();
 
-    let key = env!("SAUCENAO_API_KEY");
+    let key = option_env!("SAUCENAO_API_KEY");
 
-    src.set_api_key(key.to_string());
+    if key.is_none() {
+        panic!("Please set `SAUCENAO_API_KEY` environment variable for testing.");
+    }
+
+    src.set_api_key(key.unwrap().to_string());
 
     src
 }
@@ -85,7 +89,7 @@ async fn build_url_test() {
 
     assert_eq!(
         res,
-        format!("https://saucenao.com/search.php?url=https%3A%2F%2Fi.imgur.com%2FvRsNUMS.jpg&api_key={}", env!("SAUCENAO_API_KEY"))
+        format!("https://saucenao.com/search.php?url=https%3A%2F%2Fi.imgur.com%2FvRsNUMS.jpg&api_key={}", option_env!("SAUCENAO_API_KEY").expect("Please set the `SAUCENAO_API_KEY` environment variable for testing"))
     );
 }
 

@@ -2,30 +2,29 @@ use crate::{Sauce, SauceError, SauceItem, SauceResult};
 use async_trait::async_trait;
 use reqwest::{header, Client};
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::{borrow::Cow, collections::HashMap};
 
 const BASE_URL: &str = "https://saucenao.com/search.php?url={url}&api_key={api_key}";
 
 /// The SauceNao source.
 /// Requires an API key to function.
 #[derive(Debug)]
-pub struct SauceNao {
-    api_key: Option<String>,
+pub struct SauceNao<'a> {
+    api_key: Option<Cow<'a, str>>,
 }
 
 #[async_trait]
-impl Sauce for SauceNao {
+impl<'a> Sauce for SauceNao<'a> {
     async fn build_url(&self, url: &str) -> Result<String, SauceError> {
-        let api_key = self.get_api_key();
+        let api_key = self.get_api_key().clone();
 
         if api_key.is_none() {
             return Err(SauceError::GenericStr("API_KEY is None"));
         }
-        let api_key = api_key.clone().unwrap();
 
         let mut vars = HashMap::new();
-        vars.insert("url".to_string(), urlencoding::encode(&url));
-        vars.insert("api_key".to_string(), api_key);
+        vars.insert("url".to_string(), urlencoding::encode(url));
+        vars.insert("api_key".to_string(), api_key.unwrap());
 
         let fmt = strfmt::strfmt(BASE_URL, &vars)?;
 
@@ -33,7 +32,7 @@ impl Sauce for SauceNao {
     }
 
     async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
-        let url = self.build_url(&original_url).await?;
+        let url = self.build_url(original_url).await?;
         let url = url + "&db=999&output_type=2&testmode=1&numres=16";
         // Moved these to where we need them
 
@@ -75,7 +74,7 @@ impl Sauce for SauceNao {
     }
 }
 
-impl SauceNao {
+impl<'a> SauceNao<'a> {
     /// Creates a new SauceNao source, with a [None] api key.
     pub fn new() -> Self {
         SauceNao { api_key: None }
@@ -83,7 +82,7 @@ impl SauceNao {
 
     /// Sets the api key to a given [String].
     pub fn set_api_key(&mut self, api_key: String) {
-        self.api_key = Some(api_key)
+        self.api_key = Some(Cow::Owned(api_key))
     }
 
     // @todo: Figure out a method to implement getting remaining API calls
@@ -101,12 +100,12 @@ impl SauceNao {
     //     Ok((0, 0))
     // }
 
-    fn get_api_key(&self) -> &Option<String> {
+    fn get_api_key(&self) -> &Option<Cow<'a, str>> {
         &self.api_key
     }
 }
 
-impl Default for SauceNao {
+impl<'a> Default for SauceNao<'a> {
     fn default() -> Self {
         Self::new()
     }

@@ -6,6 +6,10 @@ pub mod iqdb;
 pub mod saucenao;
 /// Contains the Yandex source and related data.
 #[cfg(feature = "yandex")]
+#[deprecated(
+    since = "0.8.0",
+    note = "This is jank and always was jank, please stop using it."
+)]
 pub mod yandex;
 
 #[cfg(feature = "iqdb")]

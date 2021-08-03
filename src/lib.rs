@@ -1,8 +1,8 @@
 #![deny(
     missing_docs,
-    missing_crate_level_docs,
+    rustdoc::missing_crate_level_docs,
     missing_debug_implementations,
-    missing_doc_code_examples,
+    rustdoc::missing_doc_code_examples,
     unused
 )]
 
@@ -30,10 +30,10 @@ pub trait Sauce {
     /// Runs the sauce engine against a given URL, providing either results or a 'String' as an error.
     async fn check_sauce(&self, url: &str) -> Result<SauceResult, SauceError>;
     /// Just runs check_sauce several times, combining it all into one Vec<SauceResult>
-    async fn check_sauces(&self, urls: Vec<String>) -> Result<Vec<SauceResult>, SauceError> {
+    async fn check_sauces(&self, urls: &[String]) -> Result<Vec<SauceResult>, SauceError> {
         let mut out = Vec::new();
         for x in urls {
-            let res = self.check_sauce(&x).await?;
+            let res = self.check_sauce(x).await?;
             out.push(res);
         }
 

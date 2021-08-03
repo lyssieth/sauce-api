@@ -6,11 +6,15 @@ A simple-to-use async API for finding the source of an image.
 
 Best used with Tokio, but async-std should work too.
 
+## Note
+
+Tests only pass with `--all-features`
+
 ## Supported Sources
 
 - [IQDB](https://iqdb.org)
 - [saucenao](https://saucenao.com)
-- [Yandex](https://yandex.com)
+- [Yandex](https://yandex.com) ! NOTE: DEPRECATED SOON !
 
 If you wish to see more, please submit PRs or a request in an issue!
 
