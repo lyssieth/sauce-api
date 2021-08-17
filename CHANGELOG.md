@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0
+
+The entire Yandex Source has been removed.
+
+### Updates
+
+Just some upgrades.
+
+### Edits
+
+A bunch of `clippy::pedantic` stuff.
+
+At least a few items have been renamed, please check your code.
+
 ## 0.8.0
 
 ### Deprecated

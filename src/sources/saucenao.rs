@@ -1,4 +1,4 @@
-use crate::{Sauce, SauceError, SauceItem, SauceResult};
+use crate::{Error, Sauce, SauceItem, SauceResult};
 use async_trait::async_trait;
 use reqwest::{header, Client};
 use serde::Deserialize;
@@ -6,7 +6,7 @@ use std::{borrow::Cow, collections::HashMap};
 
 const BASE_URL: &str = "https://saucenao.com/search.php?url={url}&api_key={api_key}";
 
-/// The SauceNao source.
+/// The [`SauceNao`] source.
 /// Requires an API key to function.
 #[derive(Debug)]
 pub struct SauceNao<'a> {
@@ -15,11 +15,11 @@ pub struct SauceNao<'a> {
 
 #[async_trait]
 impl<'a> Sauce for SauceNao<'a> {
-    async fn build_url(&self, url: &str) -> Result<String, SauceError> {
+    async fn build_url(&self, url: &str) -> Result<String, Error> {
         let api_key = self.get_api_key().clone();
 
         if api_key.is_none() {
-            return Err(SauceError::GenericStr("API_KEY is None"));
+            return Err(Error::GenericStr("API_KEY is None"));
         }
 
         let mut vars = HashMap::new();
@@ -31,7 +31,7 @@ impl<'a> Sauce for SauceNao<'a> {
         return Ok(fmt);
     }
 
-    async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, SauceError> {
+    async fn check_sauce(&self, original_url: &str) -> Result<SauceResult, Error> {
         let url = self.build_url(original_url).await?;
         let url = url + "&db=999&output_type=2&testmode=1&numres=16";
         // Moved these to where we need them
@@ -43,7 +43,7 @@ impl<'a> Sauce for SauceNao<'a> {
         if let Some(content_type) = content_type {
             let content_type = content_type.to_str()?;
             if !content_type.contains("image") {
-                return Err(SauceError::LinkIsNotImage);
+                return Err(Error::LinkIsNotImage);
             }
         }
 
@@ -57,7 +57,7 @@ impl<'a> Sauce for SauceNao<'a> {
 
         let mut result = SauceResult {
             original_url: original_url.to_string(),
-            ..Default::default()
+            ..SauceResult::default()
         };
 
         for x in res.results {
@@ -75,14 +75,15 @@ impl<'a> Sauce for SauceNao<'a> {
 }
 
 impl<'a> SauceNao<'a> {
-    /// Creates a new SauceNao source, with a [None] api key.
+    /// Creates a new [`SauceNao`] source, with a [`None`] api key.
+    #[must_use]
     pub fn new() -> Self {
         SauceNao { api_key: None }
     }
 
     /// Sets the api key to a given [String].
     pub fn set_api_key(&mut self, api_key: String) {
-        self.api_key = Some(Cow::Owned(api_key))
+        self.api_key = Some(Cow::Owned(api_key));
     }
 
     // @todo: Figure out a method to implement getting remaining API calls

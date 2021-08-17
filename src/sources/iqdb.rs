@@ -1,7 +1,8 @@
-use crate::{Sauce, SauceError, SauceItem, SauceResult};
+use crate::{Error, Sauce, SauceItem, SauceResult};
 use async_trait::async_trait;
 use reqwest::{header, Client};
 use select::document::Document;
+use select::node::Node;
 use select::predicate::*;
 
 const BASE_ADDRESS: &str = "https://iqdb.org/";
@@ -12,11 +13,11 @@ pub struct IQDB;
 
 #[async_trait]
 impl Sauce for IQDB {
-    async fn build_url(&self, url: &str) -> Result<String, SauceError> {
+    async fn build_url(&self, url: &str) -> Result<String, Error> {
         Ok(format!("{}?url={}", BASE_ADDRESS, url))
     }
 
-    async fn check_sauce(&self, url: &str) -> Result<SauceResult, SauceError> {
+    async fn check_sauce(&self, url: &str) -> Result<SauceResult, Error> {
         let cli = Client::new();
 
         let head = cli.head(url).send().await?;
@@ -25,7 +26,7 @@ impl Sauce for IQDB {
         if let Some(content_type) = content_type {
             let content_type = content_type.to_str()?;
             if !content_type.contains("image") {
-                return Err(SauceError::LinkIsNotImage);
+                return Err(Error::LinkIsNotImage);
             }
         }
 
@@ -39,7 +40,7 @@ impl Sauce for IQDB {
 
         if let Some(status) = status.next() {
             if !status.text().trim().starts_with("OK, ") {
-                return Err(SauceError::GenericString(format!(
+                return Err(Error::GenericString(format!(
                     "Unable to retrieve sauce: {}",
                     status.text()
                 )));
@@ -48,14 +49,26 @@ impl Sauce for IQDB {
 
         let mut res = SauceResult {
             original_url: url.to_string(),
-            ..Default::default()
+            ..SauceResult::default()
         };
 
         let mut pages = html.find(Attr("id", "pages"));
 
-        let mut first = false;
-
         let pages = pages.next();
+
+        Self::harvest_stage_one(pages, &mut res)?;
+
+        let pages = html.find(Attr("id", "more1")).next();
+
+        Self::harvest_stage_two(pages, &mut res)?;
+
+        Ok(res)
+    }
+}
+
+impl IQDB {
+    fn harvest_stage_one(pages: Option<Node>, res: &mut SauceResult) -> Result<(), Error> {
+        let mut first = false;
 
         if let Some(pages) = pages {
             for node in pages.children() {
@@ -104,7 +117,7 @@ impl Sauce for IQDB {
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
                             item.similarity = match similarity.parse::<f32>() {
                                 Ok(similarity) => Ok(similarity),
-                                Err(e) => Err(SauceError::UnableToConvertToFloat(e)),
+                                Err(e) => Err(Error::UnableToConvertToFloat(e)),
                             }?;
                         }
                         _ => break,
@@ -117,14 +130,16 @@ impl Sauce for IQDB {
 
                 res.items.push(item);
             }
-        }
+        };
 
-        let pages = html.find(Attr("id", "more1")).next();
+        Ok(())
+    }
 
+    fn harvest_stage_two(pages: Option<Node>, res: &mut SauceResult) -> Result<(), Error> {
         if let Some(pages) = pages {
             let real_pages = match pages.find(Class("pages")).next() {
                 Some(real_pages) => Ok(real_pages),
-                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
+                None => Err(Error::UnableToRetrieve("failed to parse page")),
             }?;
 
             for node in real_pages.children() {
@@ -135,15 +150,15 @@ impl Sauce for IQDB {
                         0 => {
                             let td = match node.first_child() {
                                 Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
+                                None => Err(Error::UnableToRetrieve("failed to parse page")),
                             }?;
                             let link = match td.first_child() {
                                 Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
+                                None => Err(Error::UnableToRetrieve("failed to parse page")),
                             }?;
                             let href = match link.attr("href") {
                                 Some(href) => Ok(href.to_string()),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
+                                None => Err(Error::UnableToRetrieve("failed to parse page")),
                             }?;
                             item.link = if href.starts_with("//") {
                                 "https:".to_string() + &href
@@ -155,13 +170,13 @@ impl Sauce for IQDB {
                         3 => {
                             let td = match node.first_child() {
                                 Some(node) => Ok(node),
-                                None => Err(SauceError::UnableToRetrieve("failed to parse page")),
+                                None => Err(Error::UnableToRetrieve("failed to parse page")),
                             }?;
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
                             item.similarity = match similarity.parse::<f32>() {
                                 Ok(similarity) => Ok(similarity),
-                                Err(e) => Err(SauceError::UnableToConvertToFloat(e)),
+                                Err(e) => Err(Error::UnableToConvertToFloat(e)),
                             }?;
                         }
                         _ => break,
@@ -174,8 +189,8 @@ impl Sauce for IQDB {
 
                 res.items.push(item);
             }
-        }
+        };
 
-        Ok(res)
+        Ok(())
     }
 }

@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+#![allow(clippy::wildcard_imports)]
 #![deny(
     missing_docs,
     rustdoc::missing_crate_level_docs,
@@ -10,7 +12,7 @@
 //! images. Currently it only works with anime-styled images, but I hope to make
 //! it capable of doing other kinds of images as well.
 
-pub use crate::error::SauceError;
+pub use crate::error::Error;
 pub use async_trait::async_trait;
 
 /// Everything important in one nice neat module you can import.
@@ -26,11 +28,11 @@ pub mod error;
 #[async_trait]
 pub trait Sauce {
     /// Builds the URL for the given location, allowing one to provide it in case an error happens
-    async fn build_url(&self, url: &str) -> Result<String, SauceError>;
+    async fn build_url(&self, url: &str) -> Result<String, Error>;
     /// Runs the sauce engine against a given URL, providing either results or a 'String' as an error.
-    async fn check_sauce(&self, url: &str) -> Result<SauceResult, SauceError>;
+    async fn check_sauce(&self, url: &str) -> Result<SauceResult, Error>;
     /// Just runs check_sauce several times, combining it all into one Vec<SauceResult>
-    async fn check_sauces(&self, urls: &[String]) -> Result<Vec<SauceResult>, SauceError> {
+    async fn check_sauces(&self, urls: &[String]) -> Result<Vec<SauceResult>, Error> {
         let mut out = Vec::new();
         for x in urls {
             let res = self.check_sauce(x).await?;
