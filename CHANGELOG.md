@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1
+
+Various cleanups, nothing to really mention.
+
 ## 0.9.0
 
 The entire Yandex Source has been removed.
