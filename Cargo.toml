@@ -21,7 +21,7 @@ thiserror = "1.0"
 urlencoding = "2.1"
 
 [dev-dependencies]
-tokio = { version = "1.11", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1.12", features = ["rt-multi-thread", "macros"] }
 
 [features]
 default = ["saucenao", "iqdb"]
