@@ -36,7 +36,7 @@ impl Sauce for IQDB {
 
         let html = Document::from(resp.as_str());
 
-        let mut status = html.find(Attr("id", "urlstat"));
+        let mut status = html.select(Attr("id", "urlstat"));
 
         if let Some(status) = status.next() {
             if !status.text().trim().starts_with("OK, ") {
@@ -52,13 +52,13 @@ impl Sauce for IQDB {
             ..SauceResult::default()
         };
 
-        let mut pages = html.find(Attr("id", "pages"));
+        let mut pages = html.select(Attr("id", "pages"));
 
         let pages = pages.next();
 
         Self::harvest_stage_one(pages, &mut res)?;
 
-        let pages = html.find(Attr("id", "more1")).next();
+        let pages = html.select(Attr("id", "more1")).next();
 
         Self::harvest_stage_two(pages, &mut res)?;
 
@@ -78,7 +78,7 @@ impl IQDB {
                 }
                 let mut item = SauceItem::default();
 
-                for (idx, node) in node.find(Name("tr")).enumerate() {
+                for (idx, node) in node.select(Name("tr")).enumerate() {
                     match idx {
                         0 | 2..=3 => continue,
                         1 => {
@@ -137,7 +137,7 @@ impl IQDB {
 
     fn harvest_stage_two(pages: Option<Node>, res: &mut SauceResult) -> Result<(), Error> {
         if let Some(pages) = pages {
-            let real_pages = match pages.find(Class("pages")).next() {
+            let real_pages = match pages.select(Class("pages")).next() {
                 Some(real_pages) => Ok(real_pages),
                 None => Err(Error::UnableToRetrieve("failed to parse page")),
             }?;
@@ -145,7 +145,7 @@ impl IQDB {
             for node in real_pages.children() {
                 let mut item = SauceItem::default();
 
-                for (idx, node) in node.find(Name("tr")).enumerate() {
+                for (idx, node) in node.select(Name("tr")).enumerate() {
                     match idx {
                         0 => {
                             let td = match node.first_child() {
