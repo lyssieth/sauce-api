@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2
+
+Just dependency upgrades, nothing imnteresting.
+
 ## 0.9.1
 
 Various cleanups, nothing to really mention.
