@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.9.3
+
+Dependency upgrades, removed Yandex from README.
+
 ## 0.9.2
 
-Just dependency upgrades, nothing imnteresting.
+Just dependency upgrades, nothing interesting.
 
 ## 0.9.1
 
