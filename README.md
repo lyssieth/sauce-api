@@ -8,7 +8,9 @@ Best used with Tokio, but async-std should work too.
 
 ## Note
 
-Tests only pass with `--all-features`
+Tests only pass with `--all-features`.
+
+**Currently they're very likely to fail, we need a better and more stable way to test this library.**
 
 ## Supported Sources
 
