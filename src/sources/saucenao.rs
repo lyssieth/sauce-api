@@ -114,15 +114,7 @@ impl<'a> Default for SauceNao<'a> {
 
 #[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]
 struct ApiResult {
-    pub header: ApiHeader,
     pub results: Vec<ApiResultItem>,
-}
-
-#[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]
-struct ApiHeader {
-    pub status: i64,
-    pub short_remaining: i64,
-    pub long_remaining: i64,
 }
 
 #[derive(Debug, Deserialize, PartialOrd, PartialEq, Clone, Default)]
