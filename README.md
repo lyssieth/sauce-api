@@ -6,12 +6,6 @@ A simple-to-use async API for finding the source of an image.
 
 Best used with Tokio, but async-std should work too.
 
-## Note
-
-Tests only pass with `--all-features`.
-
-**Currently they're very likely to fail, we need a better and more stable way to test this library.**
-
 ## Supported Sources
 
 - [IQDB](https://iqdb.org) (`iqdb` feature)
@@ -24,11 +18,12 @@ If you wish to see more, please submit PRs or a request in an issue!
 ### IQDB
 
 ```rust
-use sauce_api::prelude::*;
+use sauce_api::source::Source;
+use sauce_api::source::iqdb::Iqdb;
 
-async fn find_source(url: String) {
-    let source = IQDB;
-    let res: Result<SauceResult, String> = source.check_sauce(url).await; // Can take some time as IQDB is a bit slow.
+async fn find_source(url: &str) {
+    let source = Iqdb::create(()).await.unwrap();
+    let res: Result<SauceResult, String> = source.check(url).await; // Can take some time as IQDB is a bit slow.
 
     match res {
         Ok(result) => {
@@ -44,12 +39,12 @@ async fn find_source(url: String) {
 ### SauceNao
 
 ```rust
-use sauce_api::prelude::*;
+use sauce_api::source::Source;
+use sauce_api::source::saucenao::SauceNao;
 
-async fn find_source(url: String) {
-    let mut source = SauceNao::new();
-    source.set_api_key("an_api_key".to_string());
-    let res: Result<SauceResult, String> = source.check_sauce(url).await;
+async fn find_source(url: &str, api_key: &str) {
+    let source = SauceNao::create(api_key.to_string()).await.unwrap();
+    let res: Result<SauceResult, String> = source.check(url).await;
 
     match res {
         Ok(result) => {
@@ -68,5 +63,5 @@ sauce-api by default uses the native TLS framework, see [this](https://github.co
 You may opt-in to using rustls if you would like to by enabling the `rustls` feature like this:
 
 ```toml
-sauce-api = { version = "0.6.0", features = ["rustls"] }
+sauce-api = { version = "1.0.0", features = ["rustls"] }
 ```
