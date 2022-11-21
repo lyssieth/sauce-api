@@ -1,5 +1,4 @@
-#![warn(clippy::pedantic)]
-#![allow(clippy::wildcard_imports)]
+#![warn(clippy::pedantic, clippy::nursery)]
 #![deny(
     missing_docs,
     rustdoc::missing_crate_level_docs,

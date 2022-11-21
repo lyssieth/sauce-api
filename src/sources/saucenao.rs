@@ -22,11 +22,15 @@ impl<'a> Sauce for SauceNao<'a> {
             return Err(Error::GenericStr("API_KEY is None"));
         }
 
-        let mut vars = HashMap::new();
-        vars.insert("url".to_string(), urlencoding::encode(url));
-        vars.insert("api_key".to_string(), api_key.unwrap());
+        let fmt = {
+            let mut vars = HashMap::new();
+            let url = urlencoding::encode(url);
+            vars.insert("url".to_string(), url.as_ref());
+            let api_key = api_key.unwrap();
+            vars.insert("api_key".to_string(), api_key.as_ref());
 
-        let fmt = strfmt::strfmt(BASE_URL, &vars)?;
+            strfmt::strfmt(BASE_URL, &vars)?
+        };
 
         return Ok(fmt);
     }
@@ -77,7 +81,7 @@ impl<'a> Sauce for SauceNao<'a> {
 impl<'a> SauceNao<'a> {
     /// Creates a new [`SauceNao`] source, with a [`None`] api key.
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         SauceNao { api_key: None }
     }
 
@@ -101,7 +105,7 @@ impl<'a> SauceNao<'a> {
     //     Ok((0, 0))
     // }
 
-    fn get_api_key(&self) -> &Option<Cow<'a, str>> {
+    const fn get_api_key(&self) -> &Option<Cow<'a, str>> {
         &self.api_key
     }
 }

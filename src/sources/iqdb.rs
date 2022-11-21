@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use reqwest::{header, Client};
 use select::document::Document;
 use select::node::Node;
-use select::predicate::*;
+use select::predicate::{Attr, Class, Name};
 
 const BASE_ADDRESS: &str = "https://iqdb.org/";
 
@@ -137,10 +137,10 @@ impl IQDB {
 
     fn harvest_stage_two(pages: Option<Node>, res: &mut SauceResult) -> Result<(), Error> {
         if let Some(pages) = pages {
-            let real_pages = match pages.select(Class("pages")).next() {
-                Some(real_pages) => Ok(real_pages),
-                None => Err(Error::UnableToRetrieve("failed to parse page")),
-            }?;
+            let real_pages = pages
+                .select(Class("pages"))
+                .next()
+                .ok_or(Error::UnableToRetrieve("failed to parse page"))?;
 
             for node in real_pages.children() {
                 let mut item = SauceItem::default();
@@ -148,18 +148,16 @@ impl IQDB {
                 for (idx, node) in node.select(Name("tr")).enumerate() {
                     match idx {
                         0 => {
-                            let td = match node.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(Error::UnableToRetrieve("failed to parse page")),
-                            }?;
-                            let link = match td.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(Error::UnableToRetrieve("failed to parse page")),
-                            }?;
-                            let href = match link.attr("href") {
-                                Some(href) => Ok(href.to_string()),
-                                None => Err(Error::UnableToRetrieve("failed to parse page")),
-                            }?;
+                            let td = node
+                                .first_child()
+                                .ok_or(Error::UnableToRetrieve("failed to parse page"))?;
+                            let link = td
+                                .first_child()
+                                .ok_or(Error::UnableToRetrieve("failed to parse page"))?;
+                            let href = link.attr("href").map_or(
+                                Err(Error::UnableToRetrieve("failed to parse page")),
+                                |href| Ok(href.to_string()),
+                            )?;
                             item.link = if href.starts_with("//") {
                                 "https:".to_string() + &href
                             } else {
@@ -168,10 +166,9 @@ impl IQDB {
                         }
                         1..=2 => continue,
                         3 => {
-                            let td = match node.first_child() {
-                                Some(node) => Ok(node),
-                                None => Err(Error::UnableToRetrieve("failed to parse page")),
-                            }?;
+                            let td = node
+                                .first_child()
+                                .ok_or(Error::UnableToRetrieve("failed to parse page"))?;
                             let text = td.text();
                             let similarity = text.split('%').collect::<Vec<&str>>()[0];
                             item.similarity = match similarity.parse::<f32>() {
