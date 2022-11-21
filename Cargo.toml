@@ -6,7 +6,7 @@ keywords = ["library", "source", "find", "search"]
 license = "MIT"
 name = "sauce-api"
 repository = "https://github.com/lyssieth/sauce-api"
-version = "0.9.3"
+version = "1.0.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
