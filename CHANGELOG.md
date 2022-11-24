@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0 (NOT YET RELEASED)
+
+Redid the entire API. Should be overall better, and easier to extend.
+
 ## 0.9.3
 
 Dependency upgrades, removed Yandex from README.

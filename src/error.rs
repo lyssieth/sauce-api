@@ -1,46 +1,37 @@
-/// The various errors that this API can produce.
-#[derive(Debug, thiserror::Error)]
+use std::fmt;
+
+/// Errors for sauce-api
+#[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
-    /// The provided link does not lead to an image file.
-    /// Or the header does not specify that the Content-Type is an image.
-    #[error("The provided link does not lead to an image file.")]
+    /// The provided link does not lead to an image file, or the Content-Type is unspecified.
     LinkIsNotImage,
 
-    /// Unable to format.
-    /// See [strfmt::FmtError]
-    #[error("Unable to format string: {0}")]
-    UnableToFormat(#[from] strfmt::FmtError),
-
-    /// Unable to convert to string.
-    /// See [reqwest::header::ToStrError]
-    #[error("Unable to convert to string: {0}")]
-    UnableToConvertToString(#[from] reqwest::header::ToStrError),
-
-    /// Unable to convert to float.
-    /// See [std::num::ParseFloatError]
-    #[error("Unable to convert to float: {0}")]
-    UnableToConvertToFloat(#[from] std::num::ParseFloatError),
-
-    /// Failed to send request.
-    /// See [reqwest::Error]
-    #[error("Failed to send request: {0}")]
-    FailedRequest(#[from] reqwest::Error),
-
-    /// Failed to parse into json.
-    /// See [serde_json::Error]
-    #[error("Failed to parse into json: {0}")]
-    FailedToParseIntoJson(#[from] serde_json::Error),
-
-    /// Unable to retrieve sauce.
-    /// A more generic error.
-    #[error("Unable to retrieve sauce: {0}")]
-    UnableToRetrieve(&'static str),
-
-    /// A very generic error, one which couldn't be generalized.
-    #[error("An error occurred: {0}")]
-    GenericStr(&'static str),
-
-    /// A very generic error, one which couldn't be generalized.
-    #[error("An error occurred: {0}")]
-    GenericString(String),
+    /// A generic error, aka something in the pipeline went wrong
+    Generic(String),
 }
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::LinkIsNotImage => write!(f, "The provided link does not lead to an image file, or the Content-Type is unspecified."),
+            Self::Generic(s) => write!(f, "{s}"),
+        }
+    }
+}
+
+macro_rules! impl_from {
+    ($from:ty) => {
+        impl From<$from> for Error {
+            fn from(e: $from) -> Self {
+                Self::Generic(e.to_string())
+            }
+        }
+    };
+}
+
+impl_from!(reqwest::Error);
+impl_from!(reqwest::header::ToStrError);
+impl_from!(serde_json::Error);
+impl_from!(std::num::ParseFloatError);
+impl_from!(Box<dyn std::error::Error + std::marker::Send + std::marker::Sync>);
