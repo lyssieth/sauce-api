@@ -2,9 +2,10 @@
 
 [![documentation](https://docs.rs/sauce-api/badge.svg)](https://docs.rs/sauce-api) [![crates.io](https://img.shields.io/crates/v/sauce-api)](https://crates.io/crates/sauce-api)
 
-A simple-to-use async API for finding the source of an image.
+sauce-api is an API for finding the source image for low-quality or cropped images.  
+Currently it only works with anime-styled images, but I hope to makeit capable of doing other kinds of images as well.
 
-Best used with Tokio, but async-std should work too.
+Asynchronous due to the usage of `reqwest`, and works best with Tokio.
 
 ## Supported Sources
 
@@ -18,12 +19,12 @@ If you wish to see more, please submit PRs or a request in an issue!
 ### IQDB
 
 ```rust
-use sauce_api::source::Source;
-use sauce_api::source::iqdb::Iqdb;
+use sauce_api::source::{Output, iqdb::Iqdb, Source};
+use sauce_api::error::Error;
 
 async fn find_source(url: &str) {
     let source = Iqdb::create(()).await.unwrap();
-    let res: Result<SauceResult, String> = source.check(url).await; // Can take some time as IQDB is a bit slow.
+    let res: Result<Output, Error> = source.check(url).await; // Can take some time as IQDB is a bit slow.
 
     match res {
         Ok(result) => {
@@ -39,12 +40,12 @@ async fn find_source(url: &str) {
 ### SauceNao
 
 ```rust
-use sauce_api::source::Source;
-use sauce_api::source::saucenao::SauceNao;
+use sauce_api::source::{Output, saucenao::SauceNao, Source};
+use sauce_api::error::Error;
 
 async fn find_source(url: &str, api_key: &str) {
     let source = SauceNao::create(api_key.to_string()).await.unwrap();
-    let res: Result<SauceResult, String> = source.check(url).await;
+    let res: Result<Output, Error> = source.check(url).await;
 
     match res {
         Ok(result) => {

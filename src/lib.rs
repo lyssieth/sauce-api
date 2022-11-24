@@ -5,10 +5,7 @@
     missing_debug_implementations,
     unused
 )]
-
-//! sauce-api is an API for finding the source image for low-quality or cropped
-//! images. Currently it only works with anime-styled images, but I hope to make
-//! it capable of doing other kinds of images as well.
+#![doc = include_str!("../README.md")]
 
 /// Contains the error type
 pub mod error;
