@@ -119,21 +119,21 @@ impl Default for Query {
 
 #[derive(Debug, Deserialize)]
 struct ApiResponse {
-    pub results: Vec<ApiItem>,
+    results: Vec<ApiItem>,
 }
 
 #[derive(Debug, Deserialize)]
 struct ApiItem {
-    pub header: ApiItemHeader,
-    pub data: ApiItemData,
+    header: ApiItemHeader,
+    data: ApiItemData,
 }
 
 #[derive(Debug, Deserialize)]
 struct ApiItemHeader {
-    pub similarity: String,
+    similarity: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct ApiItemData {
-    pub ext_urls: Option<Vec<String>>,
+    ext_urls: Option<Vec<String>>,
 }
