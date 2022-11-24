@@ -2,6 +2,7 @@ use std::fmt;
 
 /// Errors for sauce-api
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum Error {
     /// The provided link does not lead to an image file, or the Content-Type is unspecified.
     LinkIsNotImage,
