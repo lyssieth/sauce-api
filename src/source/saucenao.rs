@@ -18,7 +18,6 @@ pub struct SauceNao {
 
 #[async_trait]
 impl Source for SauceNao {
-    type S = Self;
     type Argument = String;
 
     async fn check(&self, url: &str) -> Result<Output, Error> {
@@ -76,7 +75,7 @@ impl Source for SauceNao {
         Ok(result)
     }
 
-    async fn create(arg: Self::Argument) -> Result<Self::S, Error> {
+    async fn create(arg: Self::Argument) -> Result<Self, Error> {
         Ok(Self { api_key: arg })
     }
 }

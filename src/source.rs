@@ -12,9 +12,10 @@ pub mod iqdb;
 
 /// The generic trait implemented by all sources under this module.
 #[async_trait]
-pub trait Source {
-    /// The type of the source. Should be `Self`
-    type S;
+pub trait Source
+where
+    Self: Sized,
+{
     /// The argument for [`Source::create`]
     type Argument;
 
@@ -23,7 +24,7 @@ pub trait Source {
 
     /// Allows for self-modifying the state of the Source, with an additional 'State' parameter that
     /// can be passed in.
-    async fn create(argument: Self::Argument) -> Result<Self::S, Error>;
+    async fn create(argument: Self::Argument) -> Result<Self, Error>;
 }
 
 /// The output of a Source.

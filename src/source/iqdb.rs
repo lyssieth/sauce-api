@@ -19,7 +19,6 @@ pub struct Iqdb;
 
 #[async_trait]
 impl Source for Iqdb {
-    type S = Self;
     type Argument = ();
 
     async fn check(&self, url: &str) -> Result<Output, Error> {
@@ -85,7 +84,7 @@ impl Source for Iqdb {
         })
     }
 
-    async fn create(_: Self::Argument) -> Result<Self::S, Error> {
+    async fn create(_: Self::Argument) -> Result<Self, Error> {
         Ok(Self)
     }
 }
