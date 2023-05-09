@@ -3,8 +3,6 @@ use std::fmt::Debug;
 use async_trait::async_trait;
 use fuzzysearch::{FuzzySearch as FuzzySearchInternal, FuzzySearchOpts};
 use reqwest::{header, StatusCode};
-use serde::{Deserialize, Serialize};
-use time::PrimitiveDateTime;
 use tracing::{debug, warn};
 
 use crate::{error::Error, make_client};
@@ -86,7 +84,7 @@ impl Source for FuzzySearch {
             let distance = result.distance.unwrap_or(0);
 
             let item = Item {
-                link: result.url,
+                link: result.url(),
                 similarity: 100f32 / ((distance + 1) * 100) as f32,
             };
 
@@ -109,29 +107,4 @@ impl Source for FuzzySearch {
             }),
         })
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct SearchResult {
-    site: String,
-    site_info: Option<SiteInfo>,
-    artists: Vec<String>,
-    distance: u32,
-    filename: String,
-    hash: u32,
-    hash_str: String,
-    posted_at: PrimitiveDateTime,
-    rating: String,
-    searched_hash: u32,
-    searched_hash_str: String,
-    sha256: String,
-    site_id: u32,
-    site_id_str: String,
-    tags: Vec<String>,
-    url: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct SiteInfo {
-    file_id: u32,
 }
