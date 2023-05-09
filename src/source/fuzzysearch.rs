@@ -1,0 +1,127 @@
+use async_trait::async_trait;
+use reqwest::{header, StatusCode};
+use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
+
+use crate::{error::Error, make_client};
+
+use super::{Item, Output, Source};
+
+/// The [`FuzzySearch`] source.
+///
+/// Works with `https://fuzzysearch.net`
+#[derive(Debug)]
+pub struct FuzzySearch {
+    api_key: String,
+}
+
+#[async_trait]
+#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation)]
+impl Source for FuzzySearch {
+    type State = String;
+
+    async fn check(&self, url: &str) -> Result<Output, Error> {
+        let client = make_client();
+
+        // Check whether we're dealing with an image
+        let head = client.head(url).send().await?;
+
+        let content_type = head.headers().get(header::CONTENT_TYPE);
+
+        if let Some(content_type) = content_type {
+            let content_type = content_type.to_str()?;
+
+            if !content_type.contains("image") {
+                return Err(Error::LinkIsNotImage);
+            }
+        } else {
+            return Err(Error::LinkIsNotImage);
+        }
+
+        // Build the request
+        let req = {
+            client
+                .get("https://api-next.fuzzysearech/v1/url")
+                .query(&[("url", url)])
+                .header(header::ACCEPT_ENCODING, "utf-8")
+                .header(header::ACCEPT, "application/json")
+                .header("x-api-key", self.api_key.clone())
+        };
+
+        // Send the request
+        let resp = req.send().await?;
+
+        // Check the status
+        if !resp.status().is_success() {
+            let status = resp.status();
+
+            match status {
+                StatusCode::BAD_REQUEST => {
+                    return Err(Error::Generic("URL invalid or too large".to_string()))
+                }
+                StatusCode::UNAUTHORIZED => {
+                    return Err(Error::Generic("API key invalid or missing".to_string()))
+                }
+                StatusCode::TOO_MANY_REQUESTS => {
+                    return Err(Error::Generic("Rate limit exhausted".to_string()))
+                }
+
+                _ => return Err(Error::Generic(format!("Unexpected status code: {status}"))),
+            };
+        }
+
+        // Parse the response
+        let results = resp.json::<Vec<SearchResult>>().await?;
+
+        // Convert the response to the output format
+
+        let mut output = Output {
+            original_url: url.to_string(),
+            items: Vec::new(),
+        };
+
+        for result in results {
+            let item = Item {
+                link: result.url,
+                similarity: 100f32 / ((result.distance + 1) * 100) as f32,
+            };
+
+            output.items.push(item);
+        }
+
+        output
+            .items
+            .sort_unstable_by_key(|i| (i.similarity * 100f32) as i32);
+
+        Ok(output)
+    }
+
+    async fn create(state: Self::State) -> Result<Self, Error> {
+        Ok(Self { api_key: state })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SearchResult {
+    site: String,
+    site_info: Option<SiteInfo>,
+    artists: Vec<String>,
+    distance: u32,
+    filename: String,
+    hash: u32,
+    hash_str: String,
+    posted_at: PrimitiveDateTime,
+    rating: String,
+    searched_hash: u32,
+    searched_hash_str: String,
+    sha256: String,
+    site_id: u32,
+    site_id_str: String,
+    tags: Vec<String>,
+    url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct SiteInfo {
+    file_id: u32,
+}

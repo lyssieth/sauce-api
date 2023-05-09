@@ -1,8 +1,8 @@
 use async_trait::async_trait;
-use reqwest::{header, Client};
+use reqwest::header;
 use serde::{Deserialize, Serialize};
 
-use crate::error::Error;
+use crate::{error::Error, make_client};
 
 use super::{Item, Output, Source};
 
@@ -18,10 +18,10 @@ pub struct SauceNao {
 
 #[async_trait]
 impl Source for SauceNao {
-    type Argument = String;
+    type State = String;
 
     async fn check(&self, url: &str) -> Result<Output, Error> {
-        let client = Client::new();
+        let client = make_client();
 
         // Check whether we're dealing with an image
         let head = client.head(url).send().await?;
@@ -75,7 +75,7 @@ impl Source for SauceNao {
         Ok(result)
     }
 
-    async fn create(arg: Self::Argument) -> Result<Self, Error> {
+    async fn create(arg: Self::State) -> Result<Self, Error> {
         Ok(Self { api_key: arg })
     }
 }

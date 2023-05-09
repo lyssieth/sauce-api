@@ -6,6 +6,9 @@ use crate::error::Error;
 /// The source for `saucenao.com`. Requires an API key to function.
 pub mod saucenao;
 
+#[cfg(feature = "fuzzysearch")]
+/// The source for `fuzzysearch.net`.
+pub mod fuzzysearch;
 #[cfg(feature = "iqdb")]
 /// The source for `iqdb.org`.
 pub mod iqdb;
@@ -17,14 +20,14 @@ where
     Self: Sized,
 {
     /// The argument for [`Source::create`]
-    type Argument;
+    type State;
 
     /// Searches for the source of a given URL.
     async fn check(&self, url: &str) -> Result<Output, Error>;
 
     /// Allows for self-modifying the state of the Source, with an additional 'State' parameter that
     /// can be passed in.
-    async fn create(argument: Self::Argument) -> Result<Self, Error>;
+    async fn create(argument: Self::State) -> Result<Self, Error>;
 }
 
 /// The output of a Source.

@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use async_trait::async_trait;
-use reqwest::{header, Client};
+use reqwest::header;
 use visdom::{
     types::{BoxDynElement, Elements},
     Vis,
 };
 
-use crate::error::Error;
+use crate::{error::Error, make_client};
 
 use super::{Item, Output, Source};
 
@@ -19,10 +19,10 @@ pub struct Iqdb;
 
 #[async_trait]
 impl Source for Iqdb {
-    type Argument = ();
+    type State = ();
 
     async fn check(&self, url: &str) -> Result<Output, Error> {
-        let client = Client::new();
+        let client = make_client();
 
         // Check whether we're dealing with an image
         let head = client.head(url).send().await?;
@@ -84,7 +84,7 @@ impl Source for Iqdb {
         })
     }
 
-    async fn create(_: Self::Argument) -> Result<Self, Error> {
+    async fn create(_: Self::State) -> Result<Self, Error> {
         Ok(Self)
     }
 }
