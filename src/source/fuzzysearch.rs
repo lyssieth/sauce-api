@@ -5,6 +5,7 @@ use fuzzysearch::{FuzzySearch as FuzzySearchInternal, FuzzySearchOpts};
 use reqwest::{header, StatusCode};
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
+use tracing::{debug, warn};
 
 use crate::{error::Error, make_client};
 
@@ -53,6 +54,8 @@ impl Source for FuzzySearch {
         if let Err(e) = resp {
             let status = e.status().expect("A status code should be present");
 
+            warn!(?e, "Got error from fuzzysearch");
+
             match status {
                 StatusCode::BAD_REQUEST => {
                     return Err(Error::Generic("URL invalid or too large".to_string()))
@@ -69,6 +72,8 @@ impl Source for FuzzySearch {
         }
 
         let results = resp?; // Handle any other error
+
+        debug!(?results, "Got results");
 
         // Convert the response to the output format
 
