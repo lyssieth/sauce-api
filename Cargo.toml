@@ -19,12 +19,14 @@ thiserror = "1.0.40"
 time = { version = "0.3.21", features = ["serde"] }
 visdom = { version = "0.5.10", features = ["text"], optional = true }
 
+fuzzysearch = { git = "https://github.com/Syfaro/fuzzysearch-rs.git", branch = "main", optional = true }
+
 [features]
 default = ["saucenao", "iqdb", "fuzzysearch"]
 
-saucenao = []         # Enables getting stuff from SauceNao
-iqdb = ["dep:visdom"] # Enables getting stuff from IQDB
-fuzzysearch = []      # Enables getting stuff from FuzzySearch
+saucenao = []                     # Enables getting stuff from SauceNao
+iqdb = ["dep:visdom"]             # Enables getting stuff from IQDB
+fuzzysearch = ["dep:fuzzysearch"] # Enables getting stuff from FuzzySearch
 
 rustls = ["reqwest/rustls-tls"]
 

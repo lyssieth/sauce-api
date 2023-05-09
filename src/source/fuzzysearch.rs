@@ -1,4 +1,7 @@
+use std::fmt::Debug;
+
 use async_trait::async_trait;
+use fuzzysearch::{FuzzySearch as FuzzySearchInternal, FuzzySearchOpts};
 use reqwest::{header, StatusCode};
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
@@ -10,9 +13,14 @@ use super::{Item, Output, Source};
 /// The [`FuzzySearch`] source.
 ///
 /// Works with `https://fuzzysearch.net`
-#[derive(Debug)]
 pub struct FuzzySearch {
-    api_key: String,
+    internal: FuzzySearchInternal,
+}
+
+impl Debug for FuzzySearch {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("FuzzySearch").finish()
+    }
 }
 
 #[async_trait]
@@ -39,21 +47,11 @@ impl Source for FuzzySearch {
         }
 
         // Build the request
-        let req = {
-            client
-                .get("https://api-next.fuzzysearech/v1/url")
-                .query(&[("url", url)])
-                .header(header::ACCEPT_ENCODING, "utf-8")
-                .header(header::ACCEPT, "application/json")
-                .header("x-api-key", self.api_key.clone())
-        };
-
-        // Send the request
-        let resp = req.send().await?;
+        let resp = self.internal.lookup_url(url).await;
 
         // Check the status
-        if !resp.status().is_success() {
-            let status = resp.status();
+        if let Err(e) = resp {
+            let status = e.status().expect("A status code should be present");
 
             match status {
                 StatusCode::BAD_REQUEST => {
@@ -70,8 +68,7 @@ impl Source for FuzzySearch {
             };
         }
 
-        // Parse the response
-        let results = resp.json::<Vec<SearchResult>>().await?;
+        let results = resp?; // Handle any other error
 
         // Convert the response to the output format
 
@@ -81,9 +78,11 @@ impl Source for FuzzySearch {
         };
 
         for result in results {
+            let distance = result.distance.unwrap_or(0);
+
             let item = Item {
                 link: result.url,
-                similarity: 100f32 / ((result.distance + 1) * 100) as f32,
+                similarity: 100f32 / ((distance + 1) * 100) as f32,
             };
 
             output.items.push(item);
@@ -97,7 +96,13 @@ impl Source for FuzzySearch {
     }
 
     async fn create(state: Self::State) -> Result<Self, Error> {
-        Ok(Self { api_key: state })
+        Ok(Self {
+            internal: FuzzySearchInternal::new_with_opts(FuzzySearchOpts {
+                api_key: state,
+                client: Some(make_client()),
+                endpoint: Some("https://api.fuzzysearch.net".to_string()),
+            }),
+        })
     }
 }
 
