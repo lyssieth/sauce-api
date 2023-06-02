@@ -11,6 +11,7 @@ Asynchronous due to the usage of `reqwest`, and works best with Tokio.
 
 - [IQDB](https://iqdb.org) (`iqdb` feature)
 - [saucenao](https://saucenao.com) (`saucenao` feature)
+- [fuzzysearch](https://fuzzysearch.net) (`fuzzysearch` feature)
 
 If you wish to see more, please submit PRs or a request in an issue!
 
@@ -45,6 +46,28 @@ use sauce_api::error::Error;
 
 async fn find_source(url: &str, api_key: &str) {
     let source = SauceNao::create(api_key.to_string()).await.unwrap();
+    let res: Result<Output, Error> = source.check(url).await;
+
+    match res {
+        Ok(result) => {
+            println!("Found results! {:?}", result);
+        }
+        Err(e) => {
+            eprintln!("Unable to find results: {}", e);
+        }
+    }
+}
+```
+
+
+### Fuzzysearch
+
+```rust
+use sauce_api::source::{Output, fuzzysearch::FuzzySearch, Source};
+use sauce_api::error::Error;
+
+async fn find_source(url: &str, api_key: &str) {
+    let source = FuzzySearch::create(api_key.to_string()).await.unwrap();
     let res: Result<Output, Error> = source.check(url).await;
 
     match res {
