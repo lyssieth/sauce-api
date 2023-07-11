@@ -1,4 +1,4 @@
-#![warn(clippy::nursery, clippy::pedantic)]
+#![warn(clippy::nursery, clippy::pedantic, clippy::perf)]
 #![deny(
     missing_docs,
     rustdoc::missing_crate_level_docs,
