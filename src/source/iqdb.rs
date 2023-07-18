@@ -2,10 +2,8 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use reqwest::header;
-use visdom::{
-    types::{BoxDynElement, Elements},
-    Vis,
-};
+use scraper::ElementRef;
+use tracing::debug;
 
 use crate::{error::Error, make_client};
 
@@ -16,6 +14,13 @@ use super::{Item, Output, Source};
 /// Works with `iqdb.org`
 #[derive(Debug)]
 pub struct Iqdb;
+
+/// A macro that creates a &Selector from a string literal.
+macro_rules! sel {
+    ($sel:literal) => {
+        &scraper::Selector::parse($sel).expect("invalid selector")
+    };
+}
 
 #[async_trait]
 impl Source for Iqdb {
@@ -50,12 +55,12 @@ impl Source for Iqdb {
 
         let text = resp.text().await?;
 
-        let html = Vis::load(text)?;
+        let html = scraper::Html::parse_document(&text);
 
-        let pages = html.find("#pages").children("div");
+        let pages = html.select(sel!("#pages > div")).collect::<Vec<_>>();
 
-        let best_match = if pages.length() > 2 {
-            Self::harvest_best_match(&pages.eq(1))
+        let best_match = if pages.len() > 2 {
+            Self::harvest_best_match(&pages[0])
         } else {
             None
         };
@@ -90,26 +95,31 @@ impl Source for Iqdb {
 }
 
 impl Iqdb {
-    fn harvest_page(page: &BoxDynElement) -> Option<Item> {
-        let dom = Vis::dom(page);
+    fn harvest_page(page: &ElementRef) -> Option<Item> {
+        let dom = page;
 
-        let link = dom.find(".image a").first();
+        debug!("selecting .image a");
+        let link = dom.select(sel!(".image a")).next()?;
 
-        let url = link.attr("href")?;
+        debug!("grabbing href");
+        let url = link.value().attr("href")?;
 
-        let score = dom.find("tr");
+        debug!("collecting trs");
+        let score = dom.select(sel!("tr")).collect::<Vec<_>>();
 
-        if score.length() != 5 {
+        if score.len() != 5 {
             return Some(Item {
                 link: url.to_string(),
                 similarity: -1.0,
             });
         }
 
-        let score = score.eq(4);
-        let td = score.find("td");
+        debug!("grabbing score");
+        let score = score[3];
+        debug!("grabbing td");
+        let td = score.select(sel!("td")).next()?;
 
-        let score = td.html();
+        let score = td.text().collect::<String>();
         let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
 
         Some(Item {
@@ -118,24 +128,29 @@ impl Iqdb {
         })
     }
 
-    fn harvest_best_match(pages: &Elements) -> Option<Item> {
-        let link = pages.find(".image a").first();
+    fn harvest_best_match(pages: &ElementRef) -> Option<Item> {
+        debug!("selecting .image a");
+        let link = pages.select(sel!(".image a")).next()?;
 
-        let url = link.attr("href")?;
+        debug!("grabbing href");
+        let url = link.value().attr("href")?;
 
-        let score = pages.find("tr");
+        debug!("collecting trs");
+        let score = pages.select(sel!("tr")).collect::<Vec<_>>();
 
-        if score.length() != 5 {
+        if score.len() != 5 {
             return Some(Item {
                 link: url.to_string(),
                 similarity: -1.0,
             });
         }
 
-        let score = score.eq(4);
-        let td = score.find("td");
+        debug!("grabbing score");
+        let score = score[3];
+        debug!("grabbing td");
+        let td = score.select(sel!("td")).next()?;
 
-        let score = td.html();
+        let score = td.text().collect::<String>();
         let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
 
         Some(Item {

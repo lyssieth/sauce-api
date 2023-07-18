@@ -14,19 +14,19 @@ version = "1.1.0"
 async-trait = "0.1.71"
 reqwest = { version = "0.11.18", default-features = false, features = ["json"] }
 serde = { version = "1.0.171", features = ["derive"] }
-serde_json = "1.0.100"
+serde_json = "1.0.103"
 thiserror = "1.0.43"
 time = { version = "0.3.23", features = ["serde"] }
 tracing = { version = "0.1.37" }
-visdom = { version = "0.5.10", features = ["text"], optional = true }
 
 fuzzysearch = { git = "https://github.com/Syfaro/fuzzysearch-rs.git", branch = "main", optional = true }
+scraper = "0.17.1"
 
 [features]
 default = ["saucenao", "iqdb", "fuzzysearch"]
 
 saucenao = []                     # Enables getting stuff from SauceNao
-iqdb = ["dep:visdom"]             # Enables getting stuff from IQDB
+iqdb = []             # Enables getting stuff from IQDB
 fuzzysearch = ["dep:fuzzysearch"] # Enables getting stuff from FuzzySearch
 
 rustls = ["reqwest/rustls-tls"]
