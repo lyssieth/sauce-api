@@ -2,7 +2,7 @@
 
 [![documentation](https://docs.rs/sauce-api/badge.svg)](https://docs.rs/sauce-api) [![crates.io](https://img.shields.io/crates/v/sauce-api)](https://crates.io/crates/sauce-api)
 
-sauce-api is an API for finding the source image for low-quality or cropped images.  
+sauce-api is an API for finding the source image for low-quality or cropped images.
 Currently it only works with anime-styled images, but I hope to makeit capable of doing other kinds of images as well.
 
 Asynchronous due to the usage of `reqwest`, and works best with Tokio.

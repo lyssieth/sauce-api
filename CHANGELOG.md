@@ -1,6 +1,14 @@
 # Changelog
 
-## 1.0.0 (NOT YET RELEASED)
+## 1.2.0
+
+Fix some things, update to latest tech
+
+## 1.1.0
+
+I don't remember. It's been years.
+
+## 1.0.0
 
 Redid the entire API. Should be overall better, and easier to extend.
 
@@ -65,5 +73,5 @@ We're skipping ahead before releasing 0.6.1, since too much changed.
 
 ## Older
 
-Currently, older changelogs are unavailable. Changelogs started being kept at 0.7.0-alpha1.  
+Currently, older changelogs are unavailable. Changelogs started being kept at 0.7.0-alpha1.
 If anyone wishes, they can go back and write proper changelogs of past versions.

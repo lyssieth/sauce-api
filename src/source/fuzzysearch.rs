@@ -1,13 +1,16 @@
 use std::fmt::Debug;
 
 use async_trait::async_trait;
-use fuzzysearch::{FuzzySearch as FuzzySearchInternal, FuzzySearchOpts};
-use reqwest::{header, StatusCode};
+use reqwest::{StatusCode, header};
 use tracing::{debug, warn};
 
 use crate::{error::Error, make_client};
 
 use super::{Item, Output, Source};
+
+#[allow(dead_code)]
+mod _internal;
+use _internal::{FuzzySearch as FuzzySearchInternal, FuzzySearchOpts};
 
 /// The [`FuzzySearch`] source.
 ///
@@ -50,19 +53,22 @@ impl Source for FuzzySearch {
 
         // Check the status
         if let Err(e) = resp {
-            let status = e.status().expect("A status code should be present");
+            // let status = e.status().expect("A status code should be present");
+            let Some(status) = e.status() else {
+                return Err(Error::Generic("Network error (no status code)".to_string()));
+            };
 
             warn!(?e, "Got error from fuzzysearch");
 
             match status {
                 StatusCode::BAD_REQUEST => {
-                    return Err(Error::Generic("URL invalid or too large".to_string()))
+                    return Err(Error::Generic("URL invalid or too large".to_string()));
                 }
                 StatusCode::UNAUTHORIZED => {
-                    return Err(Error::Generic("API key invalid or missing".to_string()))
+                    return Err(Error::Generic("API key invalid or missing".to_string()));
                 }
                 StatusCode::TOO_MANY_REQUESTS => {
-                    return Err(Error::Generic("Rate limit exhausted".to_string()))
+                    return Err(Error::Generic("Rate limit exhausted".to_string()));
                 }
 
                 _ => return Err(Error::Generic(format!("Unexpected status code: {status}"))),
