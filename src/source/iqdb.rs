@@ -57,17 +57,11 @@ impl Source for Iqdb {
 
         let html = scraper::Html::parse_document(&text);
 
-        let mut items: Vec<Item> = html
+        let items: Vec<Item> = html
             .select(sel!("#pages > div"))
             .skip(1)
             .filter_map(Self::harvest_page)
             .collect();
-
-        for item in &mut items {
-            if item.link.starts_with("//") {
-                item.link = format!("https:{}", item.link);
-            }
-        }
 
         Ok(Output {
             original_url: url.to_string(),
@@ -87,6 +81,12 @@ impl Iqdb {
 
         debug!("grabbing href");
         let url = link.value().attr("href")?;
+        debug!("fix broken url if needed");
+        let url = if url.starts_with("//") {
+            format!("https:{url}")
+        } else {
+            url.to_string()
+        };
 
         debug!("grabbing score");
         let score = page.select(sel!("tr:last-child > td")).next()?;
@@ -96,7 +96,7 @@ impl Iqdb {
         let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
 
         Some(Item {
-            link: url.to_string(),
+            link: url,
             similarity: score,
         })
     }
