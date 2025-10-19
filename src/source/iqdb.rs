@@ -57,25 +57,11 @@ impl Source for Iqdb {
 
         let html = scraper::Html::parse_document(&text);
 
-        let pages = html.select(sel!("#pages > div")).collect::<Vec<_>>();
-
-        let best_match = if pages.len() > 2 {
-            Self::harvest_best_match(&pages[0])
-        } else {
-            None
-        };
-
-        let mut items = Vec::new();
-
-        if let Some(best_match) = best_match {
-            items.push(best_match);
-        }
-
-        for page in pages.into_iter().skip(2) {
-            let page = Self::harvest_page(&page);
-
-            items.extend(page);
-        }
+        let mut items: Vec<Item> = html
+            .select(sel!("#pages > div"))
+            .skip(1)
+            .filter_map(Self::harvest_page)
+            .collect();
 
         for item in &mut items {
             if item.link.starts_with("//") {
@@ -95,7 +81,7 @@ impl Source for Iqdb {
 }
 
 impl Iqdb {
-    fn harvest_page(page: &ElementRef) -> Option<Item> {
+    fn harvest_page(page: ElementRef) -> Option<Item> {
         debug!("selecting .image a");
         let link = page.select(sel!(".image a")).next()?;
 
@@ -113,9 +99,5 @@ impl Iqdb {
             link: url.to_string(),
             similarity: score,
         })
-    }
-
-    fn harvest_best_match(page: &ElementRef) -> Option<Item> {
-        Self::harvest_page(page)
     }
 }
