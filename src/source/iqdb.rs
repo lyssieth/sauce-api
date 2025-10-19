@@ -96,30 +96,17 @@ impl Source for Iqdb {
 
 impl Iqdb {
     fn harvest_page(page: &ElementRef) -> Option<Item> {
-        let dom = page;
-
         debug!("selecting .image a");
-        let link = dom.select(sel!(".image a")).next()?;
+        let link = page.select(sel!(".image a")).next()?;
 
         debug!("grabbing href");
         let url = link.value().attr("href")?;
 
-        debug!("collecting trs");
-        let score = dom.select(sel!("tr")).collect::<Vec<_>>();
-
-        if score.len() != 5 {
-            return Some(Item {
-                link: url.to_string(),
-                similarity: -1.0,
-            });
-        }
-
         debug!("grabbing score");
-        let score = score[3];
-        debug!("grabbing td");
-        let td = score.select(sel!("td")).next()?;
+        let score = page.select(sel!("tr:last-child > td")).next()?;
 
-        let score = td.text().collect::<String>();
+        debug!("parsing score");
+        let score = score.text().collect::<String>();
         let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
 
         Some(Item {
@@ -128,34 +115,7 @@ impl Iqdb {
         })
     }
 
-    fn harvest_best_match(pages: &ElementRef) -> Option<Item> {
-        debug!("selecting .image a");
-        let link = pages.select(sel!(".image a")).next()?;
-
-        debug!("grabbing href");
-        let url = link.value().attr("href")?;
-
-        debug!("collecting trs");
-        let score = pages.select(sel!("tr")).collect::<Vec<_>>();
-
-        if score.len() != 5 {
-            return Some(Item {
-                link: url.to_string(),
-                similarity: -1.0,
-            });
-        }
-
-        debug!("grabbing score");
-        let score = score[3];
-        debug!("grabbing td");
-        let td = score.select(sel!("td")).next()?;
-
-        let score = td.text().collect::<String>();
-        let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
-
-        Some(Item {
-            link: url.to_string(),
-            similarity: score,
-        })
+    fn harvest_best_match(page: &ElementRef) -> Option<Item> {
+        Self::harvest_page(page)
     }
 }
