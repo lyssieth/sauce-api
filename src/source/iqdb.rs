@@ -57,31 +57,11 @@ impl Source for Iqdb {
 
         let html = scraper::Html::parse_document(&text);
 
-        let pages = html.select(sel!("#pages > div")).collect::<Vec<_>>();
-
-        let best_match = if pages.len() > 2 {
-            Self::harvest_best_match(&pages[0])
-        } else {
-            None
-        };
-
-        let mut items = Vec::new();
-
-        if let Some(best_match) = best_match {
-            items.push(best_match);
-        }
-
-        for page in pages.into_iter().skip(2) {
-            let page = Self::harvest_page(&page);
-
-            items.extend(page);
-        }
-
-        for item in &mut items {
-            if item.link.starts_with("//") {
-                item.link = format!("https:{}", item.link);
-            }
-        }
+        let items: Vec<Item> = html
+            .select(sel!("#pages > div"))
+            .skip(1)
+            .filter_map(Self::harvest_page)
+            .collect();
 
         Ok(Output {
             original_url: url.to_string(),
@@ -95,66 +75,28 @@ impl Source for Iqdb {
 }
 
 impl Iqdb {
-    fn harvest_page(page: &ElementRef) -> Option<Item> {
-        let dom = page;
-
+    fn harvest_page(page: ElementRef) -> Option<Item> {
         debug!("selecting .image a");
-        let link = dom.select(sel!(".image a")).next()?;
+        let link = page.select(sel!(".image a")).next()?;
 
         debug!("grabbing href");
         let url = link.value().attr("href")?;
-
-        debug!("collecting trs");
-        let score = dom.select(sel!("tr")).collect::<Vec<_>>();
-
-        if score.len() != 5 {
-            return Some(Item {
-                link: url.to_string(),
-                similarity: -1.0,
-            });
-        }
+        debug!("fix broken url if needed");
+        let url = if url.starts_with("//") {
+            format!("https:{url}")
+        } else {
+            url.to_string()
+        };
 
         debug!("grabbing score");
-        let score = score[3];
-        debug!("grabbing td");
-        let td = score.select(sel!("td")).next()?;
+        let score = page.select(sel!("tr:last-child > td")).next()?;
 
-        let score = td.text().collect::<String>();
+        debug!("parsing score");
+        let score = score.text().collect::<String>();
         let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
 
         Some(Item {
-            link: url.to_string(),
-            similarity: score,
-        })
-    }
-
-    fn harvest_best_match(pages: &ElementRef) -> Option<Item> {
-        debug!("selecting .image a");
-        let link = pages.select(sel!(".image a")).next()?;
-
-        debug!("grabbing href");
-        let url = link.value().attr("href")?;
-
-        debug!("collecting trs");
-        let score = pages.select(sel!("tr")).collect::<Vec<_>>();
-
-        if score.len() != 5 {
-            return Some(Item {
-                link: url.to_string(),
-                similarity: -1.0,
-            });
-        }
-
-        debug!("grabbing score");
-        let score = score[3];
-        debug!("grabbing td");
-        let td = score.select(sel!("td")).next()?;
-
-        let score = td.text().collect::<String>();
-        let score = score.split_once('%')?.0.parse::<f32>().ok()? / 100.0;
-
-        Some(Item {
-            link: url.to_string(),
+            link: url,
             similarity: score,
         })
     }
