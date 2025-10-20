@@ -17,7 +17,7 @@ If you wish to see more, please submit PRs or a request in an issue!
 
 ## Usage
 
-### IQDB
+### `IQDB`
 
 ```rust
 use sauce_api::source::{Output, iqdb::Iqdb, Source};
@@ -38,7 +38,7 @@ async fn find_source(url: &str) {
 }
 ```
 
-### SauceNao
+### `SauceNao`
 
 ```rust
 use sauce_api::source::{Output, saucenao::SauceNao, Source};
@@ -60,7 +60,7 @@ async fn find_source(url: &str, api_key: &str) {
 ```
 
 
-### Fuzzysearch
+### `Fuzzysearch`
 
 ```rust
 use sauce_api::source::{Output, fuzzysearch::FuzzySearch, Source};

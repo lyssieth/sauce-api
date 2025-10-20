@@ -14,7 +14,10 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::LinkIsNotImage => write!(f, "The provided link does not lead to an image file, or the Content-Type is unspecified."),
+            Self::LinkIsNotImage => write!(
+                f,
+                "The provided link does not lead to an image file, or the Content-Type is unspecified."
+            ),
             Self::Generic(s) => write!(f, "{s}"),
         }
     }
